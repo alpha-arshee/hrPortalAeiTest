@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Management - Authentication System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-users text-primary me-2"></i>Employee Management
+                </h2>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'accounts:analytics' %}" class="btn btn-info">
+                        <i class="fas fa-chart-line me-2"></i>Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">Search Employees</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search_query }}" placeholder="Name, username, email, or ID">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="role" class="form-label">Role Filter</label>
+                            <select class="form-select" id="role" name="role">
+                                <option value="all" {% if role_filter == 'all' %}selected{% endif %}>All Roles</option>
+                                <option value="employee" {% if role_filter == 'employee' %}selected{% endif %}>Employee</option>
+                                <option value="hr_admin" {% if role_filter == 'hr_admin' %}selected{% endif %}>HR Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="status" class="form-label">Status Filter</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                                <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                            <a href="{% url 'accounts:employee_management' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>User List
+                    </h5>
+                    <span class="badge bg-primary">{{ page_obj.paginator.count }} users</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if page_obj %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Employee ID</th>
+                                        <th>Role</th>
+                                        <th>Department</th>
+                                        <th>Date of Joining</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for employee in employees %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if employee.profile_picture %}
+                                                        <img src="{{ employee.profile_picture.url }}" class="rounded-circle me-3" width="40" height="40" alt="Profile">
+                                                    {% else %}
+                                                        <i class="fas fa-user-circle me-3 text-muted" style="font-size: 2rem;"></i>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="fw-bold">{{ employee.get_full_name }}</div>
+                                                        <small class="text-muted">{{ employee.username }}</small><br>
+                                                        <small class="text-muted">Gender: {{ employee.gender|default:'-'|capfirst }}</small>
+                                                        <small class="text-muted">{{ employee.email }}</small><br>
+                                                        {% if employee.company_email %}<small class="text-muted">Company: {{ employee.company_email }}</small>{% endif %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ employee.employee_id|default:"Not assigned" }}</td>
+                                            <td>
+                                                {% if employee.role == 'hr_admin' %}
+                                                    <span class="badge bg-primary">
+                                                        <i class="fas fa-user-shield me-1"></i>HR Admin
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-user me-1"></i>Employee
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ employee.department|default:"Not specified" }}</td>
+                                            <td>{{ employee.date_of_joining|date:"M d, Y"|default:"Not specified" }}</td>
+                                            <td>
+                                                {% if employee.is_approved %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check-circle me-1"></i>Approved
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-clock me-1"></i>Pending
+                                                    </span>
+                                                {% endif %}
+                                                {% if not employee.is_active %}
+                                                    <span class="badge bg-danger ms-1">
+                                                        <i class="fas fa-ban me-1"></i>Inactive
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'accounts:employee_detail' employee.id %}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    {% if not employee.is_approved %}
+                                                        <form method="post" action="{% url 'accounts:reactivate_employee' employee.id %}" style="display:inline;">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Approve">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                    {% if employee.is_active %}
+                                                        <form method="post" action="{% url 'accounts:reject_employee' employee.id %}" style="display:inline;">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Disable">
+                                                                <i class="fas fa-ban"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5>No users found</h5>
+                            <p class="text-muted">No users match your search criteria.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <div class="card-footer">
+                        <nav aria-label="Employee pagination">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter != 'all' %}&role={{ role_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">&laquo; First</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter != 'all' %}&role={{ role_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter != 'all' %}&role={{ role_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Next</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter != 'all' %}&role={{ role_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Last &raquo;</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    function approveEmployee(userId) {
+        if (confirm('Are you sure you want to approve this employee?')) {
+            fetch(`/accounts/employee/${userId}/approve/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error approving employee');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error approving employee');
+            });
+        }
+    }
+
+    function rejectEmployee(userId) {
+        if (confirm('Are you sure you want to disable this employee account?')) {
+            fetch(`/accounts/employee/${userId}/reject/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error disabling employee');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error disabling employee');
+            });
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %}

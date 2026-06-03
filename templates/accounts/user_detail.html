@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Employee Profile{% endblock %}
+
+{% block content %}
+
+<div class="container my-5" style="max-width:1100px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0">User Details</h2>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-primary">{{ employee.get_role_display }}</span>
+            {% if employee.is_active %}
+            <span class="badge ms-1 bg-success">Active</span>
+            {% else %}
+            <span class="badge ms-1 bg-secondary">Inactive</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-xl-6">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Personal & Employment</strong></div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm mb-0">
+                        <tbody>
+                            <tr><th class="w-50">Username</th><td>{{ employee.username }}</td></tr>
+                            <tr><th>Name</th><td>{{ employee.get_full_name }}</td></tr>
+                            <tr><th>Employee ID</th><td>{{ employee.employee_id|default:"N/A" }}</td></tr>
+                            <tr><th>Emp Code</th><td>{{ employee.emp_code|default:"N/A" }}</td></tr>
+                            <tr><th>Grade</th><td>{{ employee.grade|default:"N/A" }}</td></tr>
+                            <tr><th>Designation</th><td>{{ employee.designation|default:"N/A" }}</td></tr>
+                            <tr><th>Department</th><td>{{ employee.department|default:"N/A" }}</td></tr>
+                            <tr><th>Date Joined</th><td>{% if employee.date_of_joining %}{{ employee.date_of_joining|date:"F j, Y" }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Date of Birth</th><td>{% if profile and profile.dob %}{{ profile.dob|date:"F j, Y" }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Aadhaar</th><td>{% if employee.addhar_id %}{{ employee.addhar_id }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Project</th><td>{{ employee.project_name|default:"N/A" }}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Contact & Profile</strong></div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm mb-0">
+                        <tbody>
+                            <tr><th class="w-50">Email</th><td>{{ employee.email }}</td></tr>
+                            <tr><th class="w-50">Company Email</th><td>{{ employee.company_email|default:"N/A" }}</td></tr>
+                            <tr><th>Phone</th><td>{{ employee.phone_number|default:"N/A" }}</td></tr>
+                            <tr><th>Emergency Contact</th><td>{{ profile.emergency_contact|default:"N/A" }}</td></tr>
+                            <tr><th>Current Address</th><td>{{ profile.current_address|default:"N/A" }}</td></tr>
+                            <tr><th>Permanent Address</th><td>{{ profile.permanent_address|default:"N/A" }}</td></tr>
+                                                       
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card shadow-sm mt-3">
+                <div class="card-header"><strong>Skills</strong></div>
+                <div class="card-body">
+                    {% if profile and profile.skills %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for skill in profile.skills %}
+                        <span class="badge bg-light text-dark border">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-muted">No skills listed.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Tax & Banking</strong></div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            {% if tax_info %}
+                            <table class="table table-sm table-borderless mb-0">
+                                <tbody>
+                                    <tr><th class="w-50">PAN</th><td>{{ tax_info.pan_number|default:"N/A" }}</td></tr>
+                                    <tr><th>PF Account</th><td>{{ tax_info.pf_number|default:"N/A" }}</td></tr>
+                                    <tr><th>ESI No</th><td>{{ tax_info.esi_number|default:"N/A" }}</td></tr>
+                                    <tr><th>Tax Slab (%)</th><td>{{ tax_info.tax_slab|default:"0.0" }}</td></tr>
+                                    <tr><th>UAN</th><td>{{ tax_info.uan_number|default:"N/A" }}</td></tr>
+                                    <tr><th>Health Insurance Provider</th><td>{{ tax_info.health_insurance_provider|default:"N/A" }}</td></tr>
+                                    <tr><th>Health Insurance No</th><td>{{ tax_info.health_insurance_number|default:"N/A" }}</td></tr>
+                                    <tr><th>Other Benefits</th><td>{{ tax_info.other_benefits|default:"N/A" }}</td></tr>
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <div class="text-muted">No tax information available.</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if banking_info %}
+                            <table class="table table-sm table-borderless mb-0">
+                                <tbody>
+                                    <tr><th class="w-50">Bank</th><td>{{ banking_info.bank_name|default:"N/A" }}</td></tr>
+                                    <tr><th>Account No</th><td>{{ banking_info.account_number|default:"N/A" }}</td></tr>
+                                    <tr><th>IFSC</th><td>{{ banking_info.ifsc_code|default:"N/A" }}</td></tr>
+                                    <tr><th>Branch</th><td>{{ banking_info.branch|default:"N/A" }}</td></tr>
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <div class="text-muted">No banking information available.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Payroll</strong></div>
+                <div class="card-body">
+                    {% if payroll %}
+                    <table class="table table-sm table-striped mb-0">
+                        <tbody>
+                            <tr><th>CTC</th><td>{% if profile and profile.ctc %}&#x20B9;{{ profile.ctc }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Basic Salary</th><td>{% if payroll.basic_salary %}&#x20B9;{{ payroll.basic_salary }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>HRA</th><td>{% if payroll.hra %}&#x20B9;{{ payroll.hra }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Special Allowances</th><td>{% if payroll.special_allowances %}&#x20B9;{{ payroll.special_allowances }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Conveyance</th><td>{% if payroll.conveyance_allowances %}&#x20B9;{{ payroll.conveyance_allowances }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Fooding Allowance</th><td>{% if payroll.fooding_allowance %}&#x20B9;{{ payroll.fooding_allowance }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Medical Allowance</th><td>{% if payroll.medical_allowance %}&#x20B9;{{ payroll.medical_allowance }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Education Allowance</th><td>{% if payroll.education_allowance %}&#x20B9;{{ payroll.education_allowance }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Transport Allowance</th><td>{% if payroll.transport_allowance %}&#x20B9;{{ payroll.transport_allowance }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>EPF</th><td>{% if payroll.epf_contribution %}&#x20B9;{{ payroll.epf_contribution }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>ESI</th><td>{% if payroll.esi_contribution %}&#x20B9;{{ payroll.esi_contribution }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>Professional Tax</th><td>{% if payroll.professional_tax %}&#x20B9;{{ payroll.professional_tax }}{% else %}N/A{% endif %}</td></tr>
+                            <tr><th>TDS</th><td>{% if payroll.tds %}&#x20B9;{{ payroll.tds }}{% else %}N/A{% endif %}</td></tr>
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-muted">No payroll details available.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Leave Quota</strong>
+                    {% if leave_quota %}<small class="text-muted">{{ leave_quota.year }}</small>{% endif %}
+                </div>
+                <div class="card-body">
+                    {% if leave_quota %}
+                    <div class="row">
+                        <div class="col-md-6"><strong>Total Paid Leaves:</strong> {{ leave_quota.total_paid_leaves }}</div>
+                        <div class="col-md-6"><strong>Total Unpaid Leaves:</strong> {{ leave_quota.total_unpaid_leaves }}</div>
+                    </div>
+                    {% else %}
+                    <div class="text-muted">No leave quota available for current year.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header"><strong>Disciplinary Actions</strong></div>
+                <div class="card-body">
+                    {% if profile and profile.disciplinary_actions %}
+                    <ul>
+                        {% for action in profile.disciplinary_actions %}
+                        <li>{{ action }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-muted">No disciplinary actions.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 text-end">
+            <a href="{% url 'accounts:profile' %}" class="btn btn-primary"><i class="fas fa-edit me-2"></i>Edit Profile</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

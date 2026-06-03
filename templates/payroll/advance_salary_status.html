@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Advance Request #{{ request_obj.id }}</h2>
+
+  <div class="card">
+    <div class="card-body">
+      <p><strong>User:</strong> {{ request_obj.user.get_full_name|default:request_obj.user.username }}</p>
+      <p><strong>Amount:</strong> {{ request_obj.amount }}</p>
+      <p><strong>Reason:</strong><br>{{ request_obj.reason|linebreaksbr }}</p>
+      <p><strong>Status:</strong>
+        {% if request_obj.status == 'approved' %}
+          <span class="badge bg-success">{{ request_obj.get_status_display }}</span>
+        {% elif request_obj.status == 'pending' %}
+          <span class="badge bg-warning text-dark">{{ request_obj.get_status_display }}</span>
+        {% elif request_obj.status == 'rejected' %}
+          <span class="badge bg-danger">{{ request_obj.get_status_display }}</span>
+        {% else %}
+          {{ request_obj.get_status_display }}
+        {% endif %}
+      </p>
+      <p><strong>Requested On:</strong> {{ request_obj.request_date }}</p>
+      <p><strong>Decision On:</strong> {{ request_obj.decision_date|default:'—' }}</p>
+      <p><strong>Decisioned By:</strong>
+        {% if request_obj.approver %}
+          {{ request_obj.approver.get_full_name|default:request_obj.approver.username }}
+          {% if request_obj.approver.designation %}
+            <small class="text-muted">— {{ request_obj.approver.designation }}</small>
+          {% endif %}
+        {% else %}
+          —
+        {% endif %}
+      </p>
+
+      {% if user.is_authenticated and user.is_hr_admin %}
+        <a href="{% url 'payroll:hr_requests_list' %}" class="btn btn-secondary">Back</a>
+      {% else %}
+        <a href="{% url 'payroll:advance_salary_request' %}" class="btn btn-secondary">Back</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

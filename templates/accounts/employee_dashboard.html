@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Dashboard - Authentication System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Page Header -->
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-tachometer-alt text-primary me-2"></i>Employee Dashboard
+                    </h2>
+                    <p class="text-muted mb-0">Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">Last login: {{ user.last_login|date:"M d, Y H:i" }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Summary -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user text-primary me-2"></i>Profile Summary
+                    </h5>
+
+                    <div>
+                        {% if user.is_approved %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle me-1"></i>Account Approved
+                        </span>
+                        {% else %}
+                        <span class="badge bg-warning">
+                            <i class="fas fa-clock me-1"></i>Pending Approval
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body text-center">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" class="rounded-circle mb-3" width="100" height="100"
+                        alt="Profile Picture">
+                    {% else %}
+                    <i class="fas fa-user-circle text-muted mb-3" style="font-size: 6rem;"></i>
+                    {% endif %}
+
+                    <!-- <h5 class="card-title">{{ user.first_name }} {{ user.last_name }}</h5> -->
+                    <div class="">
+                        <label class="form-label ">Username : </label>
+                        <span class="mb-0 fw-bold">{{ user.username}}</span>
+                    </div>
+
+                    <div class="">
+                        <label class="form-label ">Emp ID : </label>
+                        <span class="mb-0 fw-bold">{{ user.employee_id|default:"Not assigned" }}</span>
+                    </div>
+
+                    <div class="">
+                        <label class="form-label ">Department : </label>
+                        <span class="mb-0 fw-bold">{{ user.department|default:"No department assigned"}}</span>
+                    </div>
+
+                    <!-- <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Information -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header flex-grow-1 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-info me-2"></i>Account Information
+                    </h5>
+
+                    <a href="{% url 'accounts:user_details' user.id %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>View
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Email:</label>
+                                <p class="mb-0">{{ user.email }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Company Email:</label>
+                                <p class="mb-0">{{ user.company_email|default:"Not specified" }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Grade:</label>
+                                <p class="mb-0">{{ user.grade|default:"Not specified" }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Gender:</label>
+                                <p class="mb-0">{{ user.gender|default:"Not specified"|capfirst }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Phone:</label>
+                                <p class="mb-0">{{ user.phone_number|default:"Not provided" }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">PF Account No:</label>
+                                <p class="mb-0">
+                                    {% if tax_info and tax_info.pf_number %}
+                                        {{ tax_info.pf_number }}
+                                    {% else %}
+                                        Not specified
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- <div class="mb-3">
+                                <label class="form-label fw-bold">Department:</label>
+                                <p class="mb-0">{{ user.department|default:"Not assigned" }}</p>
+                            </div> -->
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Designation:</label>
+                                <p class="mb-0">{{ user.designation|default:"Not specified" }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Project:</label>
+                                <p class="mb-0">{{ user.project_name|default:"Not specified" }}</p>
+                            </div>
+                            <!-- <div class="mb-3">
+                                <label class="form-label fw-bold">addhar ID:</label>
+                                <p class="mb-0">{{ user.addhar_id|default:"Not provided" }}</p>
+                            </div> -->
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">CTC:</label>
+                                {% if profile.ctc %}
+                                <p class="mb-0">₹ {{ profile.ctc|floatformat:2 }}</p>
+                                {% else %}
+                                <p class="mb-0 text-muted">Not specified</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    
+
+                    {% if profile.skills %}
+                    <div class="mt-3">
+                        <label class="form-label fw-bold">Skills:</label>
+                        <div>
+                            {% for skill in profile.skills %}
+                            <span class="badge bg-light text-dark border me-2 p-2">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Quick Actions -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt text-warning me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-edit me-2"></i>Update Profile
+                        </a>
+                        <button class="btn btn-outline-info" onclick="window.print()">
+                            <i class="fas fa-print me-2"></i>Print Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Login Activity -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history text-success me-2"></i>Recent Login Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_logins %}
+                    <div class="list-group list-group-flush">
+                        {% for login in recent_logins %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-sign-in-alt text-success me-2"></i>
+                                <small>{{ login.timestamp|date:"M d, Y H:i" }}</small>
+                            </div>
+                            <small class="text-muted">{{ login.ip_address }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-history fa-2x mb-2"></i>
+                        <p class="mb-0">No recent login history</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Messages -->
+    {% if not user.is_approved %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Account Pending Approval</strong>
+                <p class="mb-0">Your account is currently pending approval from HR. Some features may be limited until
+                    your account is approved.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

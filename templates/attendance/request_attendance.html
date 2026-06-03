@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Request Attendance{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">📋 Request Attendance</h4>
+                    <small>Submit a request when you're working but not in the office</small>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.request_date.id_for_label }}" class="form-label">
+                                📅 Date
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.request_date }}
+                            {% if form.request_date.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.request_date.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-1">
+                                Can request up to 30 days in the past or today
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.reason.id_for_label }}" class="form-label">
+                                💬 Reason
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.reason }}
+                            {% if form.reason.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.reason.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-1">
+                                e.g., "Working from home", "Remote meeting", "Client visit"
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.punch_time.id_for_label }}" class="form-label">
+                                🕐 Punch Time
+                            </label>
+                            {{ form.punch_time }}
+                            {% if form.punch_time.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.punch_time.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-block mt-1">
+                                Optional (auto-fills to current time)
+                            </small>
+                        </div>
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                ✓ Submit Request
+                            </button>
+                            <a href="{% url 'attendance:my_attendance_requests' %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-4">
+                <h6>ℹ️ How it works:</h6>
+                <ul class="mb-0">
+                    <li>Fill out this form when you're working but not in the office</li>
+                    <li>Your HR manager will review and approve or reject your request</li>
+                    <li>Once approved, your attendance will be marked automatically</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

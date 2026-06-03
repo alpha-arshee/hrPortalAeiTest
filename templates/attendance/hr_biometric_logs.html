@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Management{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 mx-2">
+  <div>
+    <table class="table table-borderless table-sm mb-0">
+      <tr>
+        <td><strong>Total Employees:</strong></td>
+        <td>{{ total_employees }}</td>
+      </tr>
+      <tr>
+        <td><strong>Present Today:</strong></td>
+        <td>{{ present_today }}</td>
+      </tr>
+      <tr>
+        <td><strong>On Leave:</strong></td>
+        <td>{{ on_leave }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="mt-2 mb-3">
+    <a class="btn btn-danger btn-sm" href="{% url 'attendance:employee_attendance_log' %}">Employees Attendance Log</a>
+  </div>
+</div>
+
+
+
+</div>
+
+<!-- Recent raw biometric logs for reference -->
+<h3 class="mt-4">Recent Biometric Logs</h3>
+<div class="table-responsive">
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Employee ID</th>
+        <th>Status</th>
+        <th>Name/Dept</th>
+        <th>Device</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.punch_date|date:"Y-m-d" }}</td>
+        <td>{{ log.punch_time }}</td>
+        <td>{{ log.employee_id }}</td>
+        <td>{{ log.status }}</td>
+        <td>
+          {% if log.user %}
+            {{ log.user.get_full_name|default:log.user.username }}
+          {% else %}
+            {{ log.department|default:'-' }}{% if log.first_name %} / {{ log.first_name }}{% endif %}
+          {% endif %}
+        </td>
+        <td>
+          {% if log.marked_by_hr and log.hr_reason %}
+            <strong>HR:</strong> {{ log.hr_reason }}
+            <div class="text-muted small">by {{ log.marked_by.get_full_name|default:log.marked_by.username }}{% if log.marked_at %} on {{ log.marked_at|date:"Y-m-d H:i" }}{% endif %}</div>
+          {% else %}
+            {{ log.device_id }}
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

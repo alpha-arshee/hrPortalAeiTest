@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>HR - Advance Salary Requests</h2>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <form method="get" class="d-flex mb-2" style="gap:8px;">
+        <input type="hidden" name="status" value="{{ status }}">
+        {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+        <input type="search" name="q" value="{{ q|default_if_none:'' }}" class="form-control form-control-sm"
+          placeholder="Search name">
+        <button class="btn btn-sm btn-primary" type="submit">Search</button>
+        <a href="?status={{ status }}" class="btn btn-sm btn-outline-secondary ms-2">Clear</a>
+      </form>
+    </div>
+    <div>
+      <a href="?status=pending" class="btn btn-sm btn-outline-primary">Pending</a>
+      <a href="?status=approved" class="btn btn-sm btn-outline-success">Approved</a>
+      <a href="?status=rejected" class="btn btn-sm btn-outline-danger">Rejected</a>
+      <a href="?status=all" class="btn btn-sm btn-outline-secondary">All</a>
+    </div>
+
+  </div>
+
+  {% if requests and requests.count > 0 %}
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>
+            User
+            <a href="?status={{ status }}&amp;sort=name" title="Sort by name asc" class="ms-2">↑</a>
+            <a href="?status={{ status }}&amp;sort=-name" title="Sort by name desc">↓</a>
+          </th>
+          <th>
+            ID
+            <a href="?status={{ status }}&amp;sort=id" title="Sort by ID asc" class="ms-2">↑</a>
+            <a href="?status={{ status }}&amp;sort=-id" title="Sort by ID desc">↓</a>
+          </th>
+          <th>Amount</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Requested On</th>
+          <th>Decision On</th>
+          <th>Approved By</th>
+          <th>Designation</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ req.user.get_full_name|default:req.user.username }}</td>
+          <td>{{ req.user.employee_id|default:'—' }}</td>
+          <td>{{ req.amount }}</td>
+          <td>{{ req.reason|truncatechars:60 }}</td>
+          <td>
+            {% if req.status == 'approved' %}
+            <span class="badge bg-success">{{ req.get_status_display }}</span>
+            {% elif req.status == 'pending' %}
+            <span class="badge bg-warning text-dark">{{ req.get_status_display }}</span>
+            {% elif req.status == 'rejected' %}
+            <span class="badge bg-danger">{{ req.get_status_display }}</span>
+            {% else %}
+            {{ req.get_status_display }}
+            {% endif %}
+          </td>
+          <td>{{ req.request_date }}</td>
+          <td>{{ req.decision_date|default:'—' }}</td>
+          <td>
+            {% if req.approver %}
+            {{ req.approver.get_full_name|default:req.approver.username }}
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td>
+            {% if req.approver and req.approver.designation %}
+            {{ req.approver.designation }}
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td>
+            {% if req.status == 'pending' %}
+            <form method="post" action="{% url 'payroll:approve_request' req.id %}" style="display:inline-block;">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-success">Approve</button>
+            </form>
+            <form method="post" action="{% url 'payroll:reject_request' req.id %}"
+              style="display:inline-block; margin-left:6px;">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-danger">Reject</button>
+            </form>
+            {% else %}
+            <a href="{% url 'payroll:advance_request_status' req.id %}" class="btn btn-sm btn-outline-primary">View</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>No requests found.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

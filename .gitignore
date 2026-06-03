@@ -1,0 +1,7 @@
+# Only ignore environment file containing secrets
+.env
+    
+
+# Ignore .venv file which may contain sensitive information
+.venv/
+.github/

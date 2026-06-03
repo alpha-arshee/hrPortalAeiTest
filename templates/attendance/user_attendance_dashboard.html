@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center m-3 mx-3">
+  <div>
+    <h2 class="mb-0">Attendance Dashboard</h2>
+    <small class="text-muted">{{ name }} &mdash; {{ email }}</small>
+  </div>
+  <div>
+    <strong>Employee ID:</strong> {{ employee_id }}
+  </div>
+</div>
+
+<!-- Constrain the dashboard to a centered container so content doesn't span full viewport -->
+<div class="container" style="max-width:100%; mx-3">
+
+  <div class="row mb-3 align-items-center px-4">
+    <div class="col-md-6">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <div class="card border-0 text-white"
+          style="max-width:160px; background: linear-gradient(135deg,#4f46e5,#06b6d4);">
+          <div class="card-body d-flex align-items-center gap-3 py-2 px-3">
+            <i class="fas fa-calendar-check fa-2x"></i>
+            <div>
+              <small class="text-white-50">Present Days</small>
+              <div class="h5 mb-0 fw-bold">{{ present_days }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-0 text-white"
+          style="max-width:160px; background: linear-gradient(135deg,#059669,#10b981);">
+          <div class="card-body d-flex align-items-center gap-3 py-2 px-3">
+            <i class="fas fa-calendar-alt fa-2x"></i>
+            <div>
+              <small class="text-white-50">Period Days</small>
+              <div class="h5 mb-0 fw-bold">{{ total_days }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+      <form id="monthPicker" method="get" class="d-flex justify-content-end align-items-center gap-2">
+        <label class="visually-hidden" for="month">Month</label>
+        <select name="month" id="month" class="form-select form-select-sm" style="width:130px;">
+          {% for m_val, m_name in months %}
+          <option value="{{ m_val }}" {% if m_val == month %}selected{% endif %}>{{ m_name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="visually-hidden" for="year">Year</label>
+        <select name="year" id="year" class="form-select form-select-sm" style="width:95px;">
+          {% for y in years %}
+          <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-sm btn-primary">Go</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+
+
+<p>Here you can manage your attendance records, leaves, and overtime. Below are your recent punch logs for the selected
+  month.</p>
+
+{% if punch_logs and punch_logs|length > 0 %}
+<div class="table-responsive">
+  <table class="table table-striped table-sm text-center">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+        <th>Device</th>
+        <th>Dept / Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in punch_logs %}
+      <tr>
+        <td>{{ log.punch_date|date:"Y-m-d" }}</td>
+        <td>{{ log.punch_time }}</td>
+        <td>{{ log.status }}</td>
+        <td>
+          {% if log.marked_by_hr and log.hr_reason %}
+            <strong>HR:</strong> {{ log.hr_reason }}
+            <div class="text-muted small">by {{ log.marked_by.get_full_name|default:log.marked_by.username }}{% if log.marked_at %} on {{ log.marked_at|date:"Y-m-d H:i" }}{% endif %}</div>
+          {% else %}
+            {{ log.device_id }}{% if log.device_serial_no %} <small class="text-muted">({{ log.device_serial_no }})</small>{% endif %}
+          {% endif %}
+        </td>
+        <td>
+          {% if log.user %}
+            {{ log.user.get_full_name|default:log.user.username }}
+          {% else %}
+            {% if log.department %}{{ log.department }}{% endif %}
+            {% if log.first_name %}
+              {% if log.department %} / {% endif %}{{ log.first_name }}
+            {% endif %}
+            <br><small class="text-warning">(matched by employee id)</small>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="alert alert-info">No punch logs found yet. Your recent attendance will appear here.</div>
+{% endif %}
+
+<h5 class="mt-4 mx-3">Overtime ({{ month }} / {{ year }})</h5>
+<div class="mb-2 mx-3"><strong>Overtime Hours (total):</strong> {{ overtime_total_hours|default:"0" }} &nbsp; <strong>Total
+    Compensation:</strong> {{ overtime_total_compensation|default:"0.00" }}</div>
+{% if overtime_entries and overtime_entries|length > 0 %}
+<div class="table-responsive">
+  <table class="table table-sm text-center">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Hours</th>
+        <th>Compensation</th>
+        <th>Reason</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ot in overtime_entries %}
+      <tr>
+        <td>{{ ot.date|date:"Y-m-d" }}</td>
+        <td>{{ ot.hours }}</td>
+        <td>{{ ot.compensation }}</td>
+        <td>{{ ot.reason }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="alert alert-info">No overtime recorded for this period.</div>
+{% endif %}
+<script>
+  // auto-submit when the user changes month/year; guard in case element missing
+  (function () {
+    var monthEl = document.getElementById('month');
+    var yearEl = document.getElementById('year');
+    var formEl = document.getElementById('monthPicker');
+    if (formEl) {
+      if (monthEl) monthEl.addEventListener('change', function () { formEl.submit(); });
+      if (yearEl) yearEl.addEventListener('change', function () { formEl.submit(); });
+    }
+  })();
+</script>
+{% endblock %}

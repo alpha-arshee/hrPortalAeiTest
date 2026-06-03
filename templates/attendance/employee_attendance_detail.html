@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Attendance Detail{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-0">Attendance for {{ employee.get_full_name|default:employee.username }}</h2>
+      <small class="text-muted">Employee ID: {{ employee.employee_id }}</small>
+    </div>
+    <div>
+      <a href="{% url 'attendance:employee_attendance_log' %}" class="btn btn-outline-secondary">Back to list</a>
+    </div>
+  </div>
+
+  <div class="mb-3 d-flex align-items-center">
+    <form id="monthPickerForm" method="get" class="d-flex g-1 align-items-center">
+      <label for="month_select" class="me-2 mb-0">Month</label>
+      <select id="month_select" name="month" class="form-select form-select-sm me-2" style="width:auto;">
+        {% for m_val, m_name in months %}
+          <option value="{{ m_val }}" {% if m_val == month %}selected{% endif %}>{{ m_name }}</option>
+        {% endfor %}
+      </select>
+      <label for="year_select" class="me-2 mb-0">Year</label>
+      <select id="year_select" name="year" class="form-select form-select-sm me-2" style="width:auto;">
+        {% for y in years %}
+          <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm btn-primary">Go</button>
+    </form>
+
+    <div class="ms-auto text-end">
+      <div><strong>Present:</strong> {{ present_days }}</div>
+      <div><strong>Leave:</strong> {{ leave_days }}</div>
+      <div><strong>Absent:</strong> {{ absent_days }}</div>
+      <div class="text-muted"><small>Period days: {{ total_days }}</small></div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <h6>Add Overtime (HR only)</h6>
+    <form method="post" class="row g-2 align-items-end">
+      {% csrf_token %}
+      <input type="hidden" name="ot_id" id="ot_id_input" value="">
+      <div class="col-auto">
+        <label class="form-label small">Date</label>
+        <input type="date" name="overtime_date" class="form-control form-control-sm" required>
+      </div>
+      <div class="col-auto">
+        <label class="form-label small">Hours</label>
+        <input type="number" step="0.25" min="0" name="overtime_hours" class="form-control form-control-sm" required>
+      </div>
+      <div class="col-auto">
+        <label class="form-label small">Compensation (optional)</label>
+        <input type="number" step="0.01" min="0" name="compensation" class="form-control form-control-sm">
+      </div>
+      <div class="col">
+        <label class="form-label small">Reason</label>
+        <input type="text" name="overtime_reason" class="form-control form-control-sm">
+      </div>
+      <div class="col-auto">
+        <button type="submit" id="ot_submit_btn" class="btn btn-sm btn-success">Add Overtime</button>
+        <button type="button" id="ot_cancel_btn" class="btn btn-sm btn-secondary ms-2" style="display:none;">Cancel Edit</button>
+      </div>
+    </form>
+  </div>
+
+  <h5>Biometric Logs ({{ month }} / {{ year }})</h5>
+  {% if logs %}
+    <div class="table-responsive mb-3">
+      <table class="table table-sm table-striped">
+        <thead>
+          <tr><th>Date</th><th>Time</th><th>Status</th><th>Device / HR Note</th><th>Source Employee ID</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for l in logs %}
+            <tr>
+              <td>{{ l.punch_date|date:"Y-m-d" }}</td>
+              <td>{{ l.punch_time }}</td>
+              <td>{{ l.status }}</td>
+              <td>
+                {% if l.marked_by_hr and l.hr_reason %}
+                  <strong>HR:</strong> {{ l.hr_reason }}
+                  <div class="text-muted small">by {{ l.marked_by.get_full_name|default:l.marked_by.username }}{% if l.marked_at %} on {{ l.marked_at|date:"Y-m-d H:i" }}{% endif %}</div>
+                {% else %}
+                  {{ l.device_id }}{% if l.device_serial_no %} <small class="text-muted">({{ l.device_serial_no }})</small>{% endif %}
+                {% endif %}
+              </td>
+              <td>{{ l.employee_id }}</td>
+              <td>
+                {% if l.marked_by_hr %}
+                  <button type="button" class="btn btn-sm btn-outline-primary hr-edit-log-btn"
+                          data-logid="{{ l.id }}"
+                          data-employeeid="{{ l.employee_id }}"
+                          data-punch-date="{{ l.punch_date|date:'Y-m-d' }}"
+                          data-punch-time="{{ l.punch_time }}"
+                          data-status="{{ l.status }}"
+                          data-hr-reason="{{ l.hr_reason|default:''|escapejs }}">
+                    Edit
+                  </button>
+                {% else %}
+                  &mdash;
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">No biometric logs for this period.</div>
+  {% endif %}
+
+  <!-- <h5>Approved Leaves overlapping the period</h5>
+  {% if leaves %}
+    <ul class="list-group mb-3">
+      {% for lv in leaves %}
+        <li class="list-group-item">
+          <strong>{{ lv.start_date|date:"Y-m-d" }} → {{ lv.end_date|date:"Y-m-d" }}</strong>
+          <div>{{ lv.reason|default:'(no reason provided)' }}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="alert alert-info">No approved leaves in this period.</div>
+  {% endif %} -->
+
+  <h5>Overtime</h5>
+  <div class="mb-2"><strong>Overtime Hours (total):</strong> {{ overtime_total_hours }} &nbsp; <strong>Total Compensation:</strong> {{ overtime_total_compensation }}</div>
+  {% if overtime %}
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead><tr><th>Date</th><th>Hours</th><th>Compensation</th><th>Reason</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for ot in overtime %}
+            <tr>
+              <td>{{ ot.date|date:"Y-m-d" }}</td>
+              <td>{{ ot.hours }}</td>
+              <td>{{ ot.compensation }}</td>
+              <td>{{ ot.reason }}</td>
+              <td>
+                <button type="button" class="btn btn-sm btn-outline-primary ot-edit-btn"
+                        data-otid="{{ ot.id }}"
+                        data-date="{{ ot.date|date:'Y-m-d' }}"
+                        data-hours="{{ ot.hours }}"
+                        data-comp="{{ ot.compensation }}"
+                        data-reason="{{ ot.reason|escapejs }}">Edit</button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">No overtime recorded in this period.</div>
+  {% endif %}
+
+  <!-- HR: Add manual attendance entry (appears in biometric logs) -->
+  <h5 class="mt-4">Add Manual Attendance (HR)</h5>
+  <form method="post" class="row g-2 mb-4">
+    {% csrf_token %}
+    <input type="hidden" name="_hr_add" value="1">
+    <input type="hidden" name="edit_log_id" id="edit_log_id" value="">
+    <div class="col-auto">
+      <label class="form-label small">Date</label>
+      <input type="date" name="punch_date" class="form-control form-control-sm" required value="{% if edit_prefill %}{{ edit_prefill.punch_date }}{% endif %}">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small">Time</label>
+      <input type="time" name="punch_time" class="form-control form-control-sm" required value="{% if edit_prefill %}{{ edit_prefill.punch_time }}{% endif %}">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small">Employee ID</label>
+      <input type="text"  name="employee_id" id="employee_id_input" class="form-control form-control-sm" value="{% if edit_prefill %}{{ edit_prefill.employee_id }}{% else %}{{ employee.employee_id }}{% endif %}" readonly>
+    </div>
+    <div class="col-auto">
+      <label class="form-label small">Status</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="IN" {% if edit_prefill and edit_prefill.status == 'IN' %}selected{% endif %}>IN</option>
+        <option value="OUT" {% if edit_prefill and edit_prefill.status == 'OUT' %}selected{% endif %}>OUT</option>
+      </select>
+    </div>
+    <div class="col">
+      <label class="form-label small">Reason</label>
+      <input type="text" name="hr_reason" class="form-control form-control-sm" placeholder="Reason for manual mark" value="{% if edit_prefill %}{{ edit_prefill.hr_reason }}{% endif %}">
+    </div>
+    <div class="col-auto align-self-end">
+      <button type="submit" id="hr_att_submit" class="btn btn-primary btn-sm">Add Attendance</button>
+      <button type="button" id="hr_att_cancel" class="btn btn-secondary btn-sm ms-2" style="display:none;">Cancel</button>
+    </div>
+  </form>
+
+  <script>
+    (function(){
+      var m = document.getElementById('month_select');
+      var y = document.getElementById('year_select');
+      var f = document.getElementById('monthPickerForm');
+      if(m && y && f){
+        m.addEventListener('change', function(){ f.submit(); });
+        y.addEventListener('change', function(){ f.submit(); });
+      }
+    })();
+    (function(){
+      // Inline edit wiring for HR-created biometric logs
+      function qs(sel, ctx){ return (ctx||document).querySelector(sel); }
+      function qsa(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); }
+
+      var editIdInput = qs('#edit_log_id');
+      var dateInputHR = qs('input[name=punch_date]');
+      var timeInputHR = qs('input[name=punch_time]');
+      var statusSelectHR = qs('select[name=status]');
+      var reasonInputHR = qs('input[name=hr_reason]');
+      var empIdInputHR = qs('#employee_id_input');
+      var submitBtnHR = qs('#hr_att_submit');
+      var cancelBtnHR = qs('#hr_att_cancel');
+
+      qsa('.hr-edit-log-btn').forEach(function(b){
+        b.addEventListener('click', function(){
+          var d = b.dataset || {};
+          if(editIdInput) editIdInput.value = d.logid || '';
+          if(empIdInputHR) empIdInputHR.value = d.employeeid || '{{ employee.employee_id }}';
+          if(dateInputHR) dateInputHR.value = d.punchDate || '';
+          if(timeInputHR) timeInputHR.value = d.punchTime || '';
+          if(statusSelectHR) statusSelectHR.value = d.status || 'IN';
+          if(reasonInputHR) reasonInputHR.value = d.hrReason || '';
+          if(submitBtnHR) submitBtnHR.textContent = 'Save Changes';
+          if(cancelBtnHR) cancelBtnHR.style.display = 'inline-block';
+          // scroll to form
+          if(dateInputHR) dateInputHR.scrollIntoView({behavior:'smooth', block:'center'});
+        });
+      });
+
+      if(cancelBtnHR){
+        cancelBtnHR.addEventListener('click', function(){
+          if(editIdInput) editIdInput.value = '';
+          if(empIdInputHR) empIdInputHR.value = '{{ employee.employee_id }}';
+          if(dateInputHR) dateInputHR.value = '';
+          if(timeInputHR) timeInputHR.value = '';
+          if(statusSelectHR) statusSelectHR.value = 'IN';
+          if(reasonInputHR) reasonInputHR.value = '';
+          if(submitBtnHR) submitBtnHR.textContent = 'Add Attendance';
+          cancelBtnHR.style.display = 'none';
+        });
+      }
+    })();
+    (function(){
+      // Inline edit wiring for overtime rows -> populate the Add Overtime form
+      function qs(sel, ctx){ return (ctx||document).querySelector(sel); }
+      function qsa(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); }
+
+      var otIdInput = document.getElementById('ot_id_input');
+      var dateInput = qs('input[name=overtime_date]');
+      var hoursInput = qs('input[name=overtime_hours]');
+      var compInput = qs('input[name=compensation]');
+      var reasonInput = qs('input[name=overtime_reason]');
+      var submitBtn = document.getElementById('ot_submit_btn');
+      var cancelBtn = document.getElementById('ot_cancel_btn');
+
+      function clearForm(){
+        if(otIdInput) otIdInput.value = '';
+        if(dateInput) dateInput.value = '';
+        if(hoursInput) hoursInput.value = '';
+        if(compInput) compInput.value = '';
+        if(reasonInput) reasonInput.value = '';
+        if(submitBtn) submitBtn.textContent = 'Add Overtime';
+        if(cancelBtn) cancelBtn.style.display = 'none';
+      }
+
+      qsa('.ot-edit-btn').forEach(function(b){
+        b.addEventListener('click', function(e){
+          var d = b.dataset || {};
+          if(otIdInput) otIdInput.value = d.otid || '';
+          if(dateInput) dateInput.value = d.date || '';
+          if(hoursInput) hoursInput.value = d.hours || '';
+          if(compInput) compInput.value = d.comp || '';
+          if(reasonInput) reasonInput.value = d.reason || '';
+          if(submitBtn) submitBtn.textContent = 'Save Changes';
+          if(cancelBtn) cancelBtn.style.display = 'inline-block';
+          // scroll to form
+          if(dateInput) dateInput.scrollIntoView({behavior:'smooth', block:'center'});
+        });
+      });
+
+      if(cancelBtn){
+        cancelBtn.addEventListener('click', function(){
+          clearForm();
+        });
+      }
+
+    })();
+  </script>
+
+{% endblock %}

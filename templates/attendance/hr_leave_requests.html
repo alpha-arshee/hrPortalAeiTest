@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Leave Requests (HR)</h2>
+
+  <div class="mb-3">
+    <form class="form-inline" method="get">
+      <label class="me-2">Status</label>
+      <select name="status" class="form-control me-2">
+        <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="approved" {% if filter_status == 'approved' %}selected{% endif %}>Approved</option>
+        <option value="rejected" {% if filter_status == 'rejected' %}selected{% endif %}>Rejected</option>
+        <option value="all" {% if filter_status == 'all' %}selected{% endif %}>All</option>
+      </select>
+      <button class="btn btn-secondary" type="submit">Filter</button>
+    </form>
+  </div>
+
+  {% if leave_requests %}
+  <table class="table table-sm table-striped">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Employee</th>
+        <th>Period</th>
+        <th>Type</th>
+        <th>Reason</th>
+        <th>Document</th>
+        <th>Status</th>
+        <th>Decision Date</th>
+        <th>Decision By</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lv in leave_requests %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>
+          {{ lv.user.get_full_name|default:lv.user.username }}
+          {% if lv.user.employee_id %}
+            <br><small class="text-muted">ID: {{ lv.user.employee_id }}</small>
+          {% endif %}
+        </td>
+        <td>{{ lv.start_date }} → {{ lv.end_date }}</td>
+        <td>
+          {{ lv.leave_type|capfirst }}
+        </td>
+        <td style="max-width:300px">{{ lv.reason|default:'-' }}</td>
+        <td>
+          {% if lv.supporting_document %}
+            <a href="{{ lv.supporting_document.url }}" target="_blank">View</a>
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ lv.status|title }}</td>
+        <td>{% if lv.decision_date %}{{ lv.decision_date }}{% else %}-{% endif %}</td>
+        <td>{% if lv.decision_by %}{{ lv.decision_by.get_full_name|default:lv.decision_by.username }} <br> <small>{{lv.decision_by.employee_id}}</small>{% else %}-{% endif %}</td>
+        <td>
+          {% if lv.status == 'pending' %}
+            <form action="{% url 'attendance:approve_leave' lv.id %}" method="post" style="display:inline-block;margin-right:6px;">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-success" type="submit">Approve</button>
+            </form>
+            <form action="{% url 'attendance:reject_leave' lv.id %}" method="post" style="display:inline-block;">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-danger" type="submit">Reject</button>
+            </form>
+          {% else %}
+            <span class="text-muted">No actions</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="alert alert-info">No leave requests found.</div>
+  {% endif %}
+
+  <a class="btn btn-outline-secondary" href="{% url 'accounts:dashboard' %}">Back to HR Dashboard</a>
+</div>
+{% endblock %}

@@ -1,0 +1,346 @@
+{% load static %}
+
+{% block content %}
+
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f7f7f7;
+        margin: 0;
+        padding: 25px;
+    }
+
+    .payslip-box {
+        width: 850px;
+        margin: auto;
+        background: #fff;
+        border: 4px solid #000;
+    }
+
+    .header {
+        border-bottom: 2px solid #000;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        gap: 145px;
+
+    }
+
+    .header img {
+        width: 90px;
+        height: auto;
+    }
+
+    .company-title {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .sub-title {
+        font-size: 15px;
+        margin-top: 3px;
+    }
+
+    .section-title {
+        font-weight: bold;
+        background: #e6e6e6;
+        padding: 6px 10px;
+        border-top: 2px solid #000;
+        border-bottom: 2px solid #000;
+
+    }
+
+    .two-col {
+        display: flex;
+    }
+
+    .col {
+        width: 50%;
+    }
+
+    .col table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 0;
+    }
+
+    table td {
+        padding: 6px 5px;
+        font-size: 14px;
+    }
+
+    .attendance-table td {
+        border: 1px solid #000;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .earn-table td,
+    .deduct-table td {
+        /* border: 1px solid #000; */
+        padding: 8px;
+    }
+
+    .right {
+        text-align: right;
+    }
+
+    .bold {
+        font-weight: bold;
+    }
+
+    .footer {
+        text-align: center;
+        font-size: 13px;
+        /* margin: 10px 0; */
+        padding: 5px;
+    }
+</style>
+
+
+<div class="payslip-box">
+
+    <!-- Header -->
+    <div class="header">
+        <img src="{% static 'logo.jpeg' %}" alt="Logo">
+        <div style="padding: 15px 0; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold;">
+                Arshee Engineering & Innovations Pvt. Ltd.
+            </div>
+
+            <div style="font-size: 16px; margin-top: 5px;">
+                Payslip For The Month of {{ month }}'{{ year }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee + Bank Sections Title Row -->
+    <div class="two-col" style="border-bottom: 2px solid #000;">
+        <div class="col section-title">Employee Details:</div>
+        <div class="col section-title" style="border-left: none;">Bank & Other Statutory Details:</div>
+    </div>
+
+    <!-- Employee + Bank Tables -->
+    <div class="two-col">
+        <!-- Employee Details -->
+        <div class="col" style="border-right: 2px solid #000;">
+            <table style="border-spacing: 0px;">
+                <tr>
+                    <td><b>Employee Code:</b></td>
+                    <td class="center">{{ emp_code }}</td>
+                </tr>
+                <tr>
+                    <td><b>Employee Name:</b></td>
+                    <td class="center">{{ emp_name }}</td>
+                </tr>
+                <tr>
+                    <td><b>Designation:</b></td>
+                    <td class="center">{{ designation }}</td>
+                </tr>
+                <tr>
+                    <td><b>Project Name:</b></td>
+                    <td class="center">{{ project_name }}</td>
+                </tr>
+                <tr>
+                    <td><b>Department:</b></td>
+                    <td class="center">{{ department }}</td>
+                </tr>
+                <tr>
+                    <td><b>Grade:</b></td>
+                    <td class="center">{{ grade }}</td>
+                </tr>
+                <tr>
+                    <td><b>Location:</b></td>
+                    <td class="center">{{ address }}</td>
+                </tr>
+                <tr>
+                    <td><b>Date Of Joining:</b></td>
+                    <td class="center">{{ joining_date }}</td>
+                </tr>
+                <tr>
+                    <td><b>E-mail ID:</b></td>
+                    <td class="center">{{ email }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Bank Details -->
+        <div class="col">
+            <table style="border-spacing: 0px;">
+                <tr>
+                    <td><b>Bank Name:</b></td>
+                    <td class="center">{{ bank_name }}</td>
+                </tr>
+                <tr>
+                    <td><b>Branch Name:</b></td>
+                    <td class="center">{{ branch }}</td>
+                </tr>
+                <tr>
+                    <td><b>Account No.:</b></td>
+                    <td class="center">{{ account_no }}</td>
+                </tr>
+                <tr>
+                    <td><b>IFS Code:</b></td>
+                    <td class="center">{{ ifsc }}</td>
+                </tr>
+                <tr>
+                    <td><b>PAN:</b></td>
+                    <td class="center">{{ pan }}</td>
+                </tr>
+                <tr>
+                    <td><b>Aadhaar No.:</b></td>
+                    <td class="center">{{ aadhaar }}</td>
+                </tr>
+                <tr>
+                    <td><b>UAN:</b></td>
+                    <td class="center">{{ uan }}</td>
+                </tr>
+                <tr>
+                    <td><b>P.F Account Number:</b></td>
+                    <td class="center">{{ pf_no }}</td>
+                </tr>
+                <tr>
+                    <td><b>ESI Number:</b></td>
+                    <td class="center">{{ esi_no }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Attendance -->
+    <div class="section-title" style=" border-bottom: 4px solid #000; border-top: 4px solid #000; ">Attendance Details:
+    </div>
+    <table class="attendance-table" style="width:100%;border-top:none; border-spacing: 0px;">
+        <tr>
+            <td style="border: none;"><b>Days In Month:</b> {{ days_in_month }}</td>
+            <td style="border: none;"><b>Present Days:</b> {{ present_days }}</td>
+        </tr>
+    </table>
+
+    <!-- Earnings & Deductions -->
+    <div class="two-col">
+        <!-- Earnings -->
+        <div class="col">
+            <div class="section-title" style="border-bottom: 4px solid #000; border-top: 4px solid #000;">Earning</div>
+            <table class="earn-table" style="border-right: #000 2px solid; border-spacing: 0px;">
+
+                <tr style="border-bottom: 2px solid #000; ">
+                    <td>Earning Head:</td>
+                    <td class="right">Amount (INR)</td>
+                </tr>
+                <tr>
+                    <td>Basic :</td>
+                    <td class="right">{{ basic }}</td>
+                </tr>
+                <tr>
+                    <td>House Rent Allowance :</td>
+                    <td class="right">{{ hra }}</td>
+                </tr>
+                <tr>
+                    <td>Conveyance Allowance :</td>
+                    <td class="right">{{ conveyance }}</td>
+                </tr>
+                <tr>
+                    <td>Fooding Allowance :</td>
+                    <td class="right">{{ fooding }}</td>
+                </tr>
+                <tr>
+                    <td>Medical Allowance :</td>
+                    <td class="right">{{ medical }}</td>
+                </tr>
+                <tr>
+                    <td>Education Allowance :</td>
+                    <td class="right">{{ education }}</td>
+                </tr>
+                <tr>
+                    <td>Transport Allowance :</td>
+                    <td class="right">{{ transport }}</td>
+                </tr>
+                <tr>
+                    <td>Special Allowance :</td>
+                    <td class="right">{{ special_allowance }}</td>
+                </tr>
+                <tr>
+                    <td>Bonus :</td>
+                    <td class="right">{{ bonus }}</td>
+                </tr>
+
+            </table>
+        </div>
+
+        <!-- Deductions -->
+        <div class="col">
+            <div class="section-title"
+                style="border-bottom: 4px solid #000; border-top: 4px solid #000; border-spacing: 0;">Deduction</div>
+            <table class="deduct-table" style="border-spacing: 0px;">
+
+                <tr style="border-bottom: 2px solid #000; ">
+                    <td>Deduction Head :</td>
+                    <td class="right">Amount (INR)</td>
+                </tr>
+
+                <tr>
+                    <td>EPF (Employee Contribution) :</td>
+                    <td class="right">{{ epf }}</td>
+                </tr>
+                <tr>
+                    <td>ESIC (Employee Contribution) :</td>
+                    <td class="right">{{ esi }}</td>
+                </tr>
+                <tr>
+                    <td>Professional Tax :</td>
+                    <td class="right">{{ prof_tax }}</td>
+                </tr>
+                <tr>
+                    <td>TDS :</td>
+                    <td class="right">{{ tds }}</td>
+                </tr>
+                <tr>
+                    <td>Advance Adjusted :</td>
+                    <td class="right">{{ advance }}</td>
+                </tr>
+
+
+            </table>
+        </div>
+    </div>
+    <div class="two-col">
+
+        <div class="col">
+            <table>
+                <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000;  ">
+                    <td class="bold">Total Earnings :</td>
+                    <td class="right bold">{{ total_earning }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="col">
+            <table>
+                <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000; ">
+                    <td class="bold">Total Deduction :</td>
+                    <td class="right bold">{{ total_deduction }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Net Salary -->
+    <!-- <div class="section-title">Net Salary:</div> -->
+    <table style="width:100%;border-spacing: 0px;">
+        <tr>
+            <td style="border-bottom: 2px solid #000; "><b>Net Salary (Rounded Off) :</b></td>
+            <td style="border-bottom: 2px solid #000; "><b>{{ net_salary }}</b></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 4px solid #000; "><b>In Words :</b></td>
+            <td class="center" style="border-bottom: 4px solid #000; ">{{ amount_in_words }}</td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        This is a computer generated document & does not require any signature
+    </div>
+
+</div>
+
+{% endblock %}

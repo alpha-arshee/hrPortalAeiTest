@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+
+{% block title %}HR Dashboard - Authentication System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Page Header -->
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-tachometer-alt text-primary me-2"></i>HR Dashboard
+                    </h2>
+                    <p class="text-muted mb-0">Welcome back, {{ user.first_name|default:user.username }}!</p>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">Last login: {{ user.last_login|date:"M d, Y H:i" }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% block extra_js_bottom %}{% endblock %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                const card = document.getElementById('upcoming-birthdays-card');
+                const panel = document.getElementById('upcoming-birthdays-floating');
+                let autoCloseTimer = null;
+                if (card && panel) {
+                    const openPanel = function() {
+                        // position floating panel below the card, keep within viewport
+                        const rect = card.getBoundingClientRect();
+                        const left = Math.max(8, rect.left + window.scrollX);
+                        const top = rect.bottom + window.scrollY + 8; // 8px gap
+                        panel.style.left = left + 'px';
+                        panel.style.top = top + 'px';
+                        // ensure width doesn't overflow viewport
+                        panel.style.minWidth = Math.max(280, rect.width) + 'px';
+                        panel.classList.remove('d-none');
+                        // clear timer and start auto-close
+                        if (autoCloseTimer) { clearTimeout(autoCloseTimer); autoCloseTimer = null; }
+                        autoCloseTimer = setTimeout(function(){ panel.classList.add('d-none'); autoCloseTimer=null; }, 30000);
+                    };
+
+                    const closePanel = function() {
+                        panel.classList.add('d-none');
+                        if (autoCloseTimer) { clearTimeout(autoCloseTimer); autoCloseTimer = null; }
+                    };
+
+                    card.addEventListener('click', function (ev) {
+                        ev.stopPropagation();
+                        if (panel.classList.contains('d-none')) openPanel(); else closePanel();
+                    });
+
+                    // close button inside panel
+                    const closeBtn = document.getElementById('upcoming-birthdays-close');
+                    if (closeBtn) closeBtn.addEventListener('click', function(ev){ ev.stopPropagation(); closePanel(); });
+
+                    // click outside to close
+                    document.addEventListener('click', function (ev) {
+                        const target = ev.target;
+                        if (!panel.contains(target) && !card.contains(target)) {
+                            closePanel();
+                        }
+                    });
+                }
+            } catch (e) {
+                // fail silently
+            }
+        });
+    </script>
+
+    {% if todays_birthdays %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-success d-flex align-items-center" role="alert">
+                <i class="fas fa-birthday-cake me-2"></i>
+                <div>
+                    <strong>Today's birthdays:</strong>
+                    {% for b in todays_birthdays %}
+                        <span class="ms-1">{{ b.name }} {{b.employee_id}} {% if not forloop.last %},{% endif %}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-sm-6 mb-2">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="mb-0">{{ total_employees|default:0 }}</h5>
+                    <small class="text-muted">Total Employees</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6 mb-2">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="mb-0">{{ attendance_today|default:0 }}</h5>
+                    <small class="text-muted">Total Attendance Today</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6 mb-2">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="mb-0">{{ employees_on_leave_today|default:0 }}</h5>
+                    <small class="text-muted">Employees on Leave Today</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6 mb-2">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="mb-0">{{ new_joinees_month|default:0 }}</h5>
+                    <small class="text-muted">New Joinees (This Month)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6 mb-2">
+            <div id="upcoming-birthdays-card" class="card h-100 border-0 shadow-sm" style="cursor:pointer;">
+                <div class="card-body text-center border-0 shadow-sm">
+                    <h6 class="mb-0">Upcoming Birthdays</h6>
+                    <h5 class="mb-0">{{ upcoming_birthdays|length }}</h5>
+                    <small class="text-muted">Next: {% if upcoming_birthdays %}{{ upcoming_birthdays.0.name }}{% else %}—{% endif %}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6 mb-2">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center border-0 shadow-sm">
+                    <h5 class="mb-0">{{ pending_approvals|default:0 }}</h5>
+                    <small class="text-muted">Pending Approvals</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Floating overlay panel (hidden by default). It is positioned absolutely by JS so it does not affect layout. -->
+    <div id="upcoming-birthdays-floating" class="card d-none position-absolute shadow" style="z-index:1050;min-width:280px;max-width:420px;max-height:320px;overflow:auto;">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Upcoming Birthdays</h6>
+                <button id="upcoming-birthdays-close" type="button" class="btn-close" aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="card-body bg-white text-dark p-2">
+            {% if upcoming_birthdays %}
+            <ul class="list-group list-group-flush">
+                {% for b in upcoming_birthdays %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold">{{ b.name }}</div>
+                        <small class="text-muted">ID: {{ b.employee_id }} {% if b.department %}• {{ b.department }}{% endif %}</small>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted">{{ b.date|date:"M d" }}</small>
+                        <div><small class="text-muted">{{ b.days_until }}d</small></div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="text-muted p-3">No birthdays in the next 30 days.</div>
+            {% endif %}
+        </div>
+    </div>
+    </div>
+
+    <div class="row w-auto mx-1">
+        <!-- Quick Actions -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt text-warning me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:employee_management' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-users me-2"></i>Manage Employees
+                        </a>
+                        <a href="{% url 'accounts:analytics' %}" class="btn btn-outline-info">
+                            <i class="fas fa-chart-line me-2"></i>View Analytics
+                        </a>
+                        <a href="{% url 'accounts:employee_detail' user.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user me-2"></i>View My Profile
+                        </a>
+
+                        {% if pending_approvals > 0 %}
+                        <a href="{% url 'accounts:employee_management' %}?status=pending" class="btn btn-warning">
+                            <i class="fas fa-clock me-2"></i>Review Pending ({{ pending_approvals }})
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Registrations -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-plus text-primary me-2"></i>Recent Registrations
+                    </h5>
+                    <a href="{% url 'accounts:employee_management' %}" class="btn btn-sm btn-outline-primary">View
+                        All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_registrations %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Department</th>
+                                    <th>Registration Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for employee in recent_registrations %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if employee.profile_picture %}
+                                            <img src="{{ employee.profile_picture.url }}" class="rounded-circle me-2"
+                                                width="32" height="32" alt="Profile">
+                                            {% else %}
+                                            <i class="fas fa-user-circle me-2 text-muted"
+                                                style="font-size: 1.5rem;"></i>
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold">{{ employee.get_full_name }}
+                                                </div>
+                                                <small class="text-muted">{{ employee.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ employee.department|default:"Not specified" }}</td>
+                                    <td>{{ employee.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if employee.is_approved %}
+                                        <span class="badge bg-success">Approved</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'accounts:employee_detail' employee.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+                        <p>No recent registrations</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Attendance Log + Pending Leave Requests (side-by-side) -->
+    <div class="row w-auto mx-1">
+        <div class="col-12 col-md-6 mb-4 mb-md-0">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-list text-primary me-2"></i>Recent Attendance Log
+                    </h5>
+                    <a href="{% url 'attendance:employee_attendance_log' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_attendance_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in recent_attendance_logs %}
+                                <tr>
+                                    <td>
+                                        {% if log.user %}
+                                            {{ log.user.get_full_name|default:log.user.username }}
+                                        {% elif log.first_name %}
+                                            {{ log.first_name }}
+                                        {% else %}
+                                            {{ log.employee_id }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{% if log.punch_date %}{{ log.punch_date|date:"M d" }}{% else %}-{% endif %}</td>
+                                    <td>{% if log.punch_time %}{{ log.punch_time }}{% else %}-{% endif %}</td>
+                                    <td>{% if log.status %}{{ log.status }}{% else %}-{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        <p>No recent attendance records available.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-signature text-primary me-2"></i>Pending Leave Requests
+                    </h5>
+                    <a href="{% url 'attendance:hr_leave_requests' %}" class="btn btn-sm btn-outline-primary">Manage Leaves</a>
+                </div>
+                <div class="card-body">
+                    {% if pending_leave_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Type</th>
+                                    <th>Dates</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lr in pending_leave_requests %}
+                                <tr>
+                                    <td>{% if lr.user %}{{ lr.user.get_full_name|default:lr.user.username }}{% else %}-{% endif %}</td>
+                                    <td>{{ lr.leave_type|capfirst }}</td>
+                                    <td>{{ lr.start_date|date:"M d" }} - {{ lr.end_date|date:"M d" }}</td>
+                                    <td><span class="badge bg-warning">{{ lr.status|capfirst }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        <p>No pending leave requests.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

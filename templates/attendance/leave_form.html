@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Leave Request{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <p>Paid Leaves Left: {{ left_paid_leaves }}, Unpaid Leaves Left: {{ left_unpaid_leaves }}</p>
+  <h2>Request Leave</h2>
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="mt-3">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        {{ form.start_date.label_tag }}
+        {{ form.start_date }}
+        {{ form.start_date.errors }}
+      </div>
+      <div class="col-md-6 mb-3">
+        {{ form.end_date.label_tag }}
+        {{ form.end_date }}
+        {{ form.end_date.errors }}
+      </div>
+    </div>
+
+    <div class="mb-3">
+      {{ form.reason.label_tag }}
+      {{ form.reason }}
+      {{ form.reason.errors }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.leave_type.label_tag }}
+      {{ form.leave_type }}
+      {{ form.leave_type.errors }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.supporting_document.label_tag }}
+      {{ form.supporting_document }}
+      {{ form.supporting_document.errors }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.contact_during_leave.label_tag }}
+      {{ form.contact_during_leave }}
+      {{ form.contact_during_leave.errors }}
+    </div>
+
+    <button class="btn btn-primary" type="submit">Submit Leave Request</button>
+  </form>
+  
+  <hr/>
+  <h3 class="mt-4">Your Leave Requests</h3>
+  {% if my_leaves and my_leaves|length > 0 %}
+    <div class="table-responsive">
+      <table class="table table-sm table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Period</th>
+            <th>Days</th>
+            <th>Type</th>
+            <th>Reason</th>
+            <th>Submitted</th>
+            <th>Status</th>
+            <th>Decision Date</th>
+            <th>Decision By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in my_leaves %}
+          {% with lv=entry.leave %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ lv.start_date|date:"M j, Y" }} → {{ lv.end_date|date:"M j, Y" }}</td>
+            <td>{% if entry.days != None %}{{ entry.days }}{% else %}-{% endif %}</td>
+            <td>{{ lv.leave_type|capfirst }}</td>
+            <td style="max-width:300px">{{ lv.reason|default:'-' }}</td>
+            <td>{% if lv.start_date %}{{ lv.start_date|date:"M j, Y" }}{% else %}-{% endif %}</td>
+            <td>{{ lv.status|capfirst }}</td>
+            <td>{% if lv.decision_date %}{{ lv.decision_date|date:"M j, Y" }}{% else %}-{% endif %}</td>
+            <td>{% if lv.decision_by %}{{ lv.decision_by.get_full_name|default:lv.decision_by.username }} <br> <small>{{lv.decision_by.employee_id}}</small>{% else %}-{% endif %}</td>
+          </tr>
+          {% endwith %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="text-muted">You have not submitted any leave requests yet.</div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Manage Holidays</h2>
+  {% if messages %}
+    <div class="mb-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Create Holiday</h5>
+      <form method="post" action="{% url 'attendance:hr_mark_holiday' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <div class="mb-3">
+          <label class="form-label">Holiday Name</label>
+          <input class="form-control" name="holiday_name" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Holiday Date</label>
+          <input class="form-control" name="holiday_date" type="date" required>
+        </div>
+        <button class="btn btn-primary">Mark Holiday</button>
+      </form>
+    </div>
+  </div>
+
+  <h5>Existing Holidays</h5>
+  {% if holidays %}
+    <div class="list-group mb-4">
+      {% for h in holidays %}
+        <div class="list-group-item">
+          <div class="d-flex w-100 justify-content-between">
+            <h6 class="mb-1">{{ h.name }}</h6>
+            <small>{% if h.date %}{{ h.date|date:"d M Y" }}{% else %}{{ h.date_str }}{% endif %}</small>
+          </div>
+          <form method="post" class="mt-2" action="{% url 'attendance:hr_mark_holiday' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="original_date" value="{{ h.date_str }}">
+            <input type="hidden" name="original_name" value="{{ h.name }}">
+            <div class="row g-2">
+              <div class="col-md-2">
+                <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this holiday for all users?');">Delete</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No holidays found.</p>
+  {% endif %}
+
+  <a href="{% url 'attendance:hr_biometric_logs' %}" class="btn btn-link">Back to Biometric Logs</a>
+</div>
+{% endblock %}

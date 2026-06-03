@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Request Advance Salary</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ advancesalaryrequestform.non_field_errors }}
+
+        <div class="mb-3">
+          <label for="id_amount" class="form-label">Amount</label>
+          {{ advancesalaryrequestform.amount }}
+          {% if advancesalaryrequestform.amount.errors %}
+            <div class="text-danger small">{{ advancesalaryrequestform.amount.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label for="id_reason" class="form-label">Reason</label>
+          {{ advancesalaryrequestform.reason }}
+          {% if advancesalaryrequestform.reason.errors %}
+            <div class="text-danger small">{{ advancesalaryrequestform.reason.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+        <a href="{% url 'payroll:user_payroll_dashboard' %}" class="btn btn-secondary ms-2">Cancel</a>
+      </form>
+    </div>
+  </div>
+
+  <h4>Your Advance Requests</h4>
+  {% if advancesalaryrequestlist and advancesalaryrequestlist.count > 0 %}
+    <div class="table-responsive mt-2">
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Requested On</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in advancesalaryrequestlist %}
+          <tr>
+            <td>{{ req.id }}</td>
+            <td>{{ req.amount }}</td>
+            <td>
+              {% if req.status == 'approved' %}
+                <span class="badge bg-success">{{ req.get_status_display }}</span>
+              {% elif req.status == 'pending' %}
+                <span class="badge bg-warning text-dark">{{ req.get_status_display }}</span>
+              {% elif req.status == 'rejected' %}
+                <span class="badge bg-danger">{{ req.get_status_display }}</span>
+              {% else %}
+                {{ req.get_status_display }}
+              {% endif %}
+            </td>
+            <td>{{ req.request_date }}</td>
+            <td>
+              <a href="{% url 'payroll:advance_request_status' req.id %}" class="btn btn-sm btn-outline-primary">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">You have not submitted any advance requests yet.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

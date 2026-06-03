@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags static %}
+
+{% block title %}Edit Employee Details - Authentication System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-user text-primary me-2"></i>Edit Employee Details
+                </h2>
+                <a href="{% url 'accounts:employee_management' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Employee List
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5" style="justify-content: center;">
+        <!-- Employee Information -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Employee Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <!-- 1. Basic Personal Information -->
+                        <div class="card mb-3">
+                            <div class="card-header"><strong>Basic Personal Information</strong></div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">{{ form.first_name|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">{{ form.middle_name|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">{{ form.last_name|as_crispy_field }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">{{ form.dob|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">{{ form.gender|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">
+                                        {% if 'addhar_id' in form.fields %}
+                                            {{ form.addhar_id|as_crispy_field }}
+                                        {% elif 'aadhar_id' in form.fields %}
+                                            {{ form.aadhar_id|as_crispy_field }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">{{ form.skills|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Contact Information -->
+                        <div class="card mb-3">
+                            <div class="card-header"><strong>Contact Information</strong></div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">{{ form.phone_number|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">{{ form.email|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">{{ form.company_email|as_crispy_field }}</div>
+                                </div>
+                                <div class="mb-3">{{ form.current_address|as_crispy_field }}</div>
+                                <div class="mb-3">{{ form.permanent_address|as_crispy_field }}</div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Emergency Details -->
+                        <div class="card mb-3">
+                            <div class="card-header"><strong>Emergency Details</strong></div>
+                            <div class="card-body">
+                                <div class="row"><div class="col-6">{{ form.emergency_contact|as_crispy_field }}</div></div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Employment & Job Details -->
+                        <div class="card mb-3">
+                            <div class="card-header"><strong>Employment & Job Details</strong></div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">{{ form.employee_id|as_crispy_field }}</div>
+                                    <div class="col-md-3 mb-3">{{ form.emp_code|as_crispy_field }}</div>
+                                    <div class="col-md-3 mb-3">{{ form.role|as_crispy_field }}</div>
+                                    <div class="col-md-3 mb-3">{{ form.designation|as_crispy_field }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">{{ form.department|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">{{ form.project_name|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">{{ form.grade|as_crispy_field }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">{{ form.date_of_joining|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="form-check">{{ form.is_active }} <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Account Active</label></div>
+                                    </div>
+                                    <div class="col-md-4 mb-3"> <div class="form-check">{{ form.is_approved }} <label class="form-check-label" for="{{ form.is_approved.id_for_label }}">Account Approved</label></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Payroll & Compensation (collapsible) -->
+                        <div class="card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <strong>Payroll & Compensation</strong>
+                                
+                            </div>
+                            <div id="payrollCollapse" class="collapse show">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">{{ form.ctc|as_crispy_field }}</div>
+                                        <div class="col-md-4 mb-3">{{ form.pay_day|as_crispy_field }}</div>
+                                        <div class="col-md-4 mb-3"></div>
+                                    </div>
+                                    <hr>
+                                    <h6>Salary Breakdown</h6>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">{{ form.basic_salary|as_crispy_field }}</div>
+                                        <div class="col-md-6 mb-3">{{ form.hra|as_crispy_field }}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">{{ form.special_allowances|as_crispy_field }}</div>
+                                        <div class="col-md-6 mb-3">{{ form.conveyance_allowances|as_crispy_field }}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">{{ form.fooding_allowance|as_crispy_field }}</div>
+                                        <div class="col-md-6 mb-3">{{ form.medical_allowance|as_crispy_field }}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">{{ form.education_allowance|as_crispy_field }}</div>
+                                        <div class="col-md-6 mb-3">{{ form.transport_allowance|as_crispy_field }}</div>
+                                    </div>
+                                    <hr>
+                                    <h6>Statutory Deductions</h6>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">{{ form.epf_contribution|as_crispy_field }}</div>
+                                        <div class="col-md-6 mb-3">{{ form.esi_contribution|as_crispy_field }}</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">{{ form.professional_tax|as_crispy_field }}</div>
+                                        <div class="col-md-6 mb-3">{{ form.tds|as_crispy_field }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Tax & Statutory Information -->
+                        <div class="card mb-3">
+                            <div class="card-header"><strong>Tax & Statutory Information</strong></div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">{{ form.pan_number|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">{{ form.pf_number|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">{{ form.uan|as_crispy_field }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">{{ form.esi_number|as_crispy_field }}</div>
+                                    <div class="col-md-4 mb-3">{{ form.tax_slab|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 7. Insurance & Benefits -->
+                        <div class="card mb-3">
+                            <div class="card-header"><strong>Insurance & Benefits</strong></div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">{{ form.health_insurance_provider|as_crispy_field }}</div>
+                                    <div class="col-md-6 mb-3">{{ form.health_insurance_number|as_crispy_field }}</div>
+                                </div>
+                                <div class="row"><div class="col-12">{{ form.other_benefits|as_crispy_field }}</div></div>
+                            </div>
+                        </div>
+
+                        <!-- 8. Banking Information -->
+                        <div class="card mb-3">
+                            <div class="card-header"><strong>Banking Information</strong></div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">{{ form.bank_name|as_crispy_field }}</div>
+                                    <div class="col-md-6 mb-3">{{ form.account_number|as_crispy_field }}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">{{ form.ifsc_code|as_crispy_field }}</div>
+                                    <div class="col-md-6 mb-3">{{ form.branch|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 9. Leave Quota (Current Year) -->
+                        <div class="card mb-3">
+                            <div class="card-header"><strong>Leave Quota (Current Year)</strong></div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">{{ form.total_paid_leaves|as_crispy_field }}</div>
+                                    <div class="col-md-6 mb-3">{{ form.total_unpaid_leaves|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Employee
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

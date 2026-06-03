@@ -1,0 +1,525 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-4">
+  <h2>Generate Payroll for {{ details.user.get_full_name|default:details.user.username }}</h2>
+
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+  {% endif %}
+
+  <div class="row">
+    <h4>Employee Details</h4>
+    <div class="col-md-6">
+      <table class="table table-sm">
+        <tr>
+          <th>Emp Code</th>
+          <td>{{ details.user.emp_code }}</td>
+        </tr>
+        <tr>
+          <th>Employee Name</th>
+          <td>{{ details.user.get_full_name }}</td>
+        </tr>
+        <tr>
+          <th>Project Name</th>
+          <td>{{ details.user.project_name }}</td>
+        </tr>
+        <tr>
+          <th>Designation</th>
+          <td>{{ details.user.designation }}</td>
+        </tr>
+        <tr>
+          <th>Department</th>
+          <td>{{ details.user.department }}</td>
+        </tr>
+        <tr>
+          <th>Grade</th>
+          <td>{{ details.user.grade }}</td>
+        </tr>
+        <tr>
+          <th>Address</th>
+          <td>{{ details.user.employeeprofile.current_address|default:"-" }}</td>
+        </tr>
+        <tr>
+          <th>Date of Joining</th>
+          <td>{{ details.user.date_of_joining|default:"-" }}</td>
+        </tr>
+        <tr>
+          <th>Email</th>
+          <td>{{ details.user.email }}</td>
+        </tr>
+      </table>
+    </div>
+    <div class="col-md-6">
+      <table class="table table-sm">
+        <tr>
+          <th>Bank name</th>
+          <td>{{ details.user.bankinginfo.bank_name }}</td>
+        </tr>
+        <tr>
+          <th>Branch Name</th>
+          <td>{{ details.user.bankinginfo.branch }}</td>
+        </tr>
+        <tr>
+          <th>Account Name</th>
+          <td>{{ details.user.bankinginfo.account_number }}</td>
+        </tr>
+        <tr>
+          <th>IFSC Code</th>
+          <td>{{ details.user.bankinginfo.ifsc_code }}</td>
+        </tr>
+        <tr>
+          <th>Pan No :</th>
+          <td>{{ details.user.taxinfo.pan_number }}</td>
+        </tr>
+        <tr>
+          <th>Aadhaar No</th>
+          <td>{{ details.user.addhar_id }}</td>
+        </tr>
+        <tr>
+          <th>UAN No :</th>
+          <td>{{ details.user.taxinfo.uan_number|default:"0" }}</td>
+        </tr>
+        <tr>
+          <th>Health Insurance Provider</th>
+          <td>{{ details.user.taxinfo.health_insurance_provider|default:"-" }}</td>
+        </tr>
+        <tr>
+          <th>Health Insurance No :</th>
+          <td>{{ details.user.taxinfo.health_insurance_number|default:"-" }}</td>
+        </tr>
+        <tr>
+          <th>Other Benefits</th>
+          <td>{{ details.user.taxinfo.other_benefits|default:"-" }}</td>
+        </tr>
+        <tr>
+          <th>P.F Account No :</th>
+          <td>{{ details.user.taxinfo.pf_number|default:"0" }}</td>
+        </tr>
+        <tr>
+          <th>ESI No :</th>
+          <td>{{ details.user.taxinfo.esi_number|default:"0" }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="row">
+    <h4>Payroll Details</h4>
+    <table class="table table-sm">
+      <tr>
+        <th>CTC:</th>
+        <td>{{ details.user.employeeprofile.ctc|default:"-" }}</td>
+      </tr>
+      <tr>
+        <th>Basic Salary</th>
+        <td>{{ initial.basic_salary }}</td>
+      </tr>
+      <tr>
+        <th>HRA</th>
+        <td>{{ initial.hra }}</td>
+      </tr>
+      <tr>
+        <th>Special Allowances</th>
+        <td>{{ initial.special_allowances }}</td>
+      </tr>
+      <tr>
+        <th>Conveyance</th>
+        <td>{{ initial.conveyance_allowances }}</td>
+      </tr>
+      <tr>
+        <th>Fooding Allowance</th>
+        <td>{{ initial.fooding_allowance }}</td>
+      </tr>
+      <tr>
+        <th>Medical Allowance</th>
+        <td>{{ initial.medical_allowance }}</td>
+      </tr>
+      <tr>
+        <th>Education Allowance</th>
+        <td>{{ initial.education_allowance }}</td>
+      </tr>
+      <tr>
+        <th>Transport Allowance</th>
+        <td>{{ initial.transport_allowance }}</td>
+      </tr>
+      <tr>
+        <th>EPF</th>
+        <td>{{ initial.epf_contribution }}</td>
+      </tr>
+      <tr>
+        <th>ESI</th>
+        <td>{{ initial.esi_contribution }}</td>
+      </tr>
+      <tr>
+        <th>Professional Tax</th>
+        <td>{{ initial.professional_tax }}</td>
+      </tr>
+      <tr>
+        <th>TDS</th>
+        <td>{{ initial.tds }}</td>
+      </tr>
+    </table>
+  </div>
+  <hr />
+  <form method="post">
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-2">
+        <label class="form-label">Month</label>
+        <select name="month" class="form-control" required>
+          {% for m in months_list %}
+          <option value="{{ m }}" {% if m == initial.month %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Year</label>
+        <select name="year" class="form-control" required>
+          {% for y in years_list %}
+          <option value="{{ y }}" {% if y == initial.year %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="row g-3 mt-2">
+      <div class="col-md-3">
+        <label class="form-label">Present Days</label>
+        <input id="present_days_input" type="text" class="form-control" value="{{ present_days|default:0 }}" readonly />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Absent Days</label>
+        <input id="absent_days_input" type="text" class="form-control" value="{{ absent_days|default:0 }}" readonly />
+      </div>
+    </div>
+      <!-- <div class="col-md-2">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-control">
+          {% for s in statuses_list %}
+          <option value="{{ s }}" {% if s == initial.status %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div> -->
+    </div>
+
+    <h5 class="mt-3">Salary Details</h5>
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">Basic Salary</label>
+        <input name="basic_salary" class="form-control"
+               value="{{ prorated_basic|default:initial.basic_salary }}"
+               data-full="{{ initial.basic_salary }}"
+               data-auto="true" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">HRA</label>
+        <input name="hra" class="form-control"
+               value="{{ prorated_hra|default:initial.hra }}"
+               data-full="{{ initial.hra }}"
+               data-auto="true" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Special Allowances</label>
+        <input name="special_allowances" class="form-control"
+               value="{{ prorated_special_allowances|default:initial.special_allowances }}"
+               data-full="{{ initial.special_allowances }}"
+               data-auto="true" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Conveyance</label>
+        <input name="conveyance_allowances" class="form-control"
+               value="{{ prorated_conveyance_allowances|default:initial.conveyance_allowances }}"
+               data-full="{{ initial.conveyance_allowances }}"
+               data-auto="true" />
+      </div>
+    </div>
+
+    <div class="row g-3 mt-2">
+      <div class="col-md-3">
+        <label class="form-label">Fooding Allowance</label>
+        <input name="fooding_allowance" class="form-control"
+               value="{{ prorated_fooding_allowance|default:initial.fooding_allowance }}"
+               data-full="{{ initial.fooding_allowance }}"
+               data-auto="true" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Medical Allowance</label>
+        <input name="medical_allowance" class="form-control"
+               value="{{ prorated_medical_allowance|default:initial.medical_allowance }}"
+               data-full="{{ initial.medical_allowance }}"
+               data-auto="true" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Education Allowance</label>
+        <input name="education_allowance" class="form-control"
+               value="{{ prorated_education_allowance|default:initial.education_allowance }}"
+               data-full="{{ initial.education_allowance }}"
+               data-auto="true" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Transport Allowance</label>
+        <input name="transport_allowance" class="form-control"
+               value="{{ prorated_transport_allowance|default:initial.transport_allowance }}"
+               data-full="{{ initial.transport_allowance }}"
+               data-auto="true" />
+      </div>
+    </div>
+
+    <div class="row g-3 mt-2">
+      <div class="col-md-3">
+        <label class="form-label">EPF Contribution</label>
+        <input name="epf_contribution" class="form-control"
+               value="{{ prorated_epf_contribution|default:initial.epf_contribution }}"
+               data-full="{{ initial.epf_contribution }}"
+               data-auto="true" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">ESI Contribution</label>
+        <input name="esi_contribution" class="form-control"
+               value="{{ prorated_esi_contribution|default:initial.esi_contribution }}"
+               data-full="{{ initial.esi_contribution }}"
+               data-auto="true" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Professional Tax</label>
+        <input name="professional_tax" class="form-control"
+               value="{{ prorated_professional_tax|default:initial.professional_tax }}"
+               data-full="{{ initial.professional_tax }}"
+               data-auto="true" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">TDS</label>
+        <input name="tds" class="form-control"
+               value="{{ prorated_tds|default:initial.tds }}"
+               data-full="{{ initial.tds }}"
+               data-auto="true" />
+      </div>
+    </div>
+
+    <div class="row g-3 mt-2">
+      <div class="col-md-3">
+        <label class="form-label">Bonuses</label>
+        <input name="bonuses" class="form-control" value="0" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Advance Adjustment</label>
+        <input name="advance_adjustment" class="form-control" value="0" />
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Overtime <span id="overtime_hours">0</span> hrs</label>
+        <div class="col">
+          <p style="padding: .375rem .75rem;" class="card w-25"><span id="overtime_pay" >0</span></p>
+        </div>
+        <!-- Hidden readonly input so the overtime pay participates in client-side calculations and is POSTed -->
+        <input type="hidden" name="overtime_compensation" id="overtime_compensation" value="0" />
+        <!-- Hidden input to POST overtime hours as well -->
+        <input type="hidden" name="overtime_hours" id="overtime_hours_input" value="0" />
+      </div>
+
+
+    </div>
+    
+    
+
+    <div class="row g-3 mt-2">
+      <p><strong>Total Earnings : </strong><span id="total_earnings">{{total_earnings}}</span>
+         &nbsp;&nbsp;<strong>Total deductions : </strong><span id="total_deductions">{{total_deductions}}</span></p>
+      <p><strong>Net Pay : </strong><span id="net_pay">{{net_pay}}</span></p>
+    </div>
+
+    <script>
+      (function(){
+        // Parse a numeric input value into a JS number (fallback 0)
+        function parseVal(v){
+          if (v === null || v === undefined) return 0;
+          try{
+            // remove commas and whitespace
+            var s = String(v).replace(/,/g, '').trim();
+            if (s === '') return 0;
+            var n = Number(s);
+            return isNaN(n) ? 0 : n;
+          }catch(e){ return 0; }
+        }
+
+        function fmtNumber(n){
+          // Format similar to server: strip unnecessary .00
+          if (n === null || n === undefined) return '';
+          if (Number.isInteger(n)) return String(n);
+          // show up to 2 decimal places, then trim trailing zeros
+          var s = n.toFixed(2);
+          s = s.replace(/\.00$/, '');
+          s = s.replace(/(\.\d[1-9]?)0$/, '$1');
+          // trim trailing dot if any
+          s = s.replace(/\.$/, '');
+          return s;
+        }
+
+        function recalc(){
+          var idsEarnings = ['basic_salary','hra','special_allowances','conveyance_allowances','fooding_allowance','medical_allowance','education_allowance','transport_allowance','bonuses','overtime_compensation'];
+          var idsDeductions = ['epf_contribution','esi_contribution','professional_tax','tds','advance_adjustment'];
+
+          var earn = 0; var ded = 0;
+          idsEarnings.forEach(function(id){
+            var el = document.getElementsByName(id)[0];
+            if (el) earn += parseVal(el.value);
+          });
+          idsDeductions.forEach(function(id){
+            var el = document.getElementsByName(id)[0];
+            if (el) ded += parseVal(el.value);
+          });
+
+          var net = earn - ded;
+          document.getElementById('total_earnings').textContent = fmtNumber(earn);
+          document.getElementById('total_deductions').textContent = fmtNumber(ded);
+          document.getElementById('net_pay').textContent = fmtNumber(net);
+        }
+
+        // update prorated inputs based on present days and selected month/year
+        function updateProratedInputs(presentDays) {
+          try {
+            var monthEl = document.getElementsByName('month')[0];
+            var yearEl = document.getElementsByName('year')[0];
+            var month = monthEl ? parseInt(monthEl.value, 10) : new Date().getMonth() + 1;
+            var year = yearEl ? parseInt(yearEl.value, 10) : new Date().getFullYear();
+            // JS months are 0-based when creating Date(year, monthIndex, 0) so pass month
+            var daysInMonth = (new Date(year, month, 0)).getDate();
+            var ratio = 0;
+            if (daysInMonth > 0) {
+              ratio = (Number(presentDays) || 0) / daysInMonth;
+            }
+
+            // fields to prorate
+            var names = ['basic_salary','hra','special_allowances','conveyance_allowances','fooding_allowance','medical_allowance','education_allowance','transport_allowance','epf_contribution','esi_contribution','professional_tax','tds'];
+            names.forEach(function(name){
+              var el = document.getElementsByName(name)[0];
+              if (!el) return;
+              // only auto-update fields that still have data-auto="true"
+              if (el.getAttribute('data-auto') !== 'true') return;
+              var full = parseFloat((el.getAttribute('data-full') || '0').replace(/,/g,'')) || 0;
+              var prorated = full * ratio;
+              // round to 2 decimals, show as string, don't drop .00 here (recalc will format)
+              el.value = (Math.round(prorated * 100) / 100).toFixed(2);
+            });
+            // after updating values recompute totals
+            recalc();
+          } catch (e) { /* ignore */ }
+        }
+
+        // stop auto-updates if user edits a specific input
+        function attachDisableAutoOnEdit(){
+          var names = ['basic_salary','hra','special_allowances','fooding_allowance','conveyance_allowances','epf_contribution','esi_contribution','professional_tax','tds'];
+          names.forEach(function(name){
+            var el = document.getElementsByName(name)[0];
+            if (!el) return;
+            el.addEventListener('input', function(){
+              if (el.getAttribute('data-auto') === 'true'){
+                el.removeAttribute('data-auto');
+              }
+            });
+          });
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){
+          attachDisableAutoOnEdit();
+           // attach input listeners to all relevant fields
+           var fields = ['basic_salary','hra','special_allowances','fooding_allowance','conveyance_allowances','education_allowance','epf_contribution','medical_allowance','transport_allowance','esi_contribution','professional_tax','tds','bonuses','advance_adjustment'];
+           fields.forEach(function(name){
+             var el = document.getElementsByName(name)[0];
+             if (el){
+               el.addEventListener('input', recalc);
+               // ensure values are normalized (empty -> 0)
+               if (el.value === '' || el.value === undefined || el.value === null){ el.value = '0'; }
+             }
+           });
+           // initial calc
+           recalc();
+
+          // helper to fetch overtime totals for selected user/month/year
+          function fetchOvertimeAndUpdate(){
+            try{
+              var userId = '{{ details.user.id }}';
+              var monthEl = document.getElementsByName('month')[0];
+              var yearEl = document.getElementsByName('year')[0];
+              var month = monthEl ? monthEl.value : '{{ initial.month }}';
+              var year = yearEl ? yearEl.value : '{{ initial.year }}';
+              var url = '{% url "payroll:overtime_for_month" %}';
+              var params = new URLSearchParams({user_id: userId, month: month, year: year});
+              fetch(url + '?' + params.toString(), {credentials: 'same-origin'})
+                .then(function(r){ return r.json(); })
+                .then(function(data){
+                  if (data && !data.error){
+                    var hrs = data.hours || '0';
+                    var comp = data.compensation || '0';
+                    // update visible spans
+                    var elH = document.getElementById('overtime_hours'); if (elH) elH.textContent = hrs;
+                    var elP = document.getElementById('overtime_pay'); if (elP) elP.textContent = (comp === null ? '0' : comp.replace(/\.00$/, ''));
+                    // update hidden inputs used in recalc and POST
+                    var hiddenComp = document.getElementById('overtime_compensation'); if (hiddenComp) hiddenComp.value = comp;
+                    var hiddenHrs = document.getElementById('overtime_hours_input'); if (hiddenHrs) hiddenHrs.value = hrs;
+                    // recalc totals to include overtime
+                    recalc();
+                  }
+                }).catch(function(){ /* fail silently, keep zeros */ });
+            }catch(e){ /* ignore */ }
+          }
+
+          // fetch initial overtime on load
+          fetchOvertimeAndUpdate();
+
+          // re-fetch when month/year changes
+          var monthSel = document.getElementsByName('month')[0];
+          var yearSel = document.getElementsByName('year')[0];
+          if (monthSel) monthSel.addEventListener('change', fetchOvertimeAndUpdate);
+          if (yearSel) yearSel.addEventListener('change', fetchOvertimeAndUpdate);
+          
+          // fetch present/absent for selected month/year and update UI
+          function fetchPresentAbsentAndUpdate(){
+            try{
+              var userId = '{{ details.user.id }}';
+              var monthEl = document.getElementsByName('month')[0];
+              var yearEl = document.getElementsByName('year')[0];
+              var month = monthEl ? monthEl.value : '{{ initial.month }}';
+              var year = yearEl ? yearEl.value : '{{ initial.year }}';
+              var url = '{% url "payroll:present_absent_for_month" %}';
+              var params = new URLSearchParams({user_id: userId, month: month, year: year});
+              fetch(url + '?' + params.toString(), {credentials: 'same-origin'})
+                .then(function(r){ return r.json(); })
+                .then(function(data){
+                  if (data && !data.error){
+                    var pd = data.present_days || 0;
+                    var ad = data.absent_days || 0;
+                    var pdEl = document.getElementById('present_days_input'); if (pdEl) pdEl.value = pd;
+                    var adEl = document.getElementById('absent_days_input'); if (adEl) adEl.value = ad;
+                    // update prorated inputs using the freshly fetched present days
+                    updateProratedInputs(pd);
+                  }
+                }).catch(function(){ /* ignore */ });
+            }catch(e){ /* ignore */ }
+          }
+
+          // initial fetch for present/absent
+          fetchPresentAbsentAndUpdate();
+          // recalc/prorate when month/year selections change
+          if (monthSel) monthSel.addEventListener('change', function(){
+            fetchPresentAbsentAndUpdate();
+          });
+           if (yearSel) yearSel.addEventListener('change', function(){
+            fetchPresentAbsentAndUpdate();
+          });
+         });
+       })();
+     </script>
+
+    
+
+    <div class="mt-4">
+      <button class="btn btn-primary" type="submit">Generate Payroll</button>
+      <a class="btn btn-outline-secondary" href="{% url 'payroll:employee_payroll_list' %}">Cancel</a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

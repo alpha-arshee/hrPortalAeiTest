@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>HR Payroll Dashboard</h2>
+    <a class="btn btn-outline-secondary" href="{% url 'payroll:employee_payroll_list' %}">Generate Payslip</a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+      <div class="card h-100 text-white bg-black">
+        <div class="card-body">
+          <h6 class="card-title mb-2">Total Employees</h6>
+          <h3 class="card-text">{{ total_employees|default:"—" }}</h3>
+          <h6 class="card-text text-danger"><small> Payment not yet made {{ not_paid_till|default:"—" }}</small></h6>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="card h-100 text-white bg-success">
+        <div class="card-body">
+          <h6 class="card-title mb-2">Total Payroll Cost <span style="font-size: smaller;">(This Month) </span> 
+            <span style="font-size: smaller; font-weight: 500; color: rgb(233, 233, 233);">salary + overtime + deductions</span>
+          </h6>
+          <h4 class="card-text">₹{{ total_payroll_cost|default:0|floatformat:2 }}</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+      <div class="card h-100 text-white bg-info">
+        <div class="card-body">
+          <h6 class="card-title mb-2">Net Salary Paid</h6>
+          <h4 class="card-text">₹{{ net_salary_paid|default:0|floatformat:2 }}</h4>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+      <div class="card h-100 text-dark bg-danger ">
+        <div class="card-body">
+          <h6 class="card-title mb-2">Total Deduction (This Month)</h6>
+          <h4 class="card-text">₹{% if deductions is not None %}{{ deductions|floatformat:2 }}{% else %}0.00{% endif %}</h4>
+        </div>
+      </div>
+    </div>
+
+    
+
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+      <div class="card h-100 text-white bg-warning">
+        <div class="card-body">
+          <h6 class="card-title mb-2">Overtime Cost</h6>
+          <h4 class="card-text">₹{{ overtime_cost|default:0|floatformat:2 }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <!-- Additional payroll dashboard content can go here -->
+  </div>
+
+
+
+  <div class="mt-4">
+    <h5>Components Distribution</h5>
+    <div class="chart-container" style="max-width:480px; height:240px;">
+      <canvas id="componentsPie"></canvas>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <h5>Total Payroll Cost Trend (12 months)</h5>
+    <div class="chart-container" style="max-width:720px; height:320px;">
+      <canvas id="payrollTrendLine"></canvas>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    (function(){
+      try {
+        const values = [
+          parseFloat("{{ total_basic|default:0 }}"),
+          parseFloat("{{ total_hra|default:0 }}"),
+          parseFloat("{{ total_allowances|default:0 }}"),
+          parseFloat("{{ overtime_cost|default:0 }}"),
+          parseFloat("{{ deductions|default:0 }}")
+        ];
+        const labels = ['Basic','HRA','Allowances','Overtime','Deductions'];
+        // Colors map to labels: Basic, HRA, Allowances, Overtime, Deductions
+        const bg = ['#1f77b4','#2ca02c','#36b9cc','#f6c23e','#e74a3b'];
+        const canvas = document.getElementById('componentsPie');
+        if (!canvas) return;
+        // ensure canvas fills the container
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        new Chart(canvas.getContext('2d'), {
+          type: 'pie',
+          data: { labels: labels, datasets: [{ data: values, backgroundColor: bg, borderColor: '#ffffff', borderWidth: 1 }] },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+              legend: { labels: { color: '#222' } },
+              tooltip: { enabled: true }
+            }
+          }
+        });
+      } catch (e) {
+        // fail silently in older browsers
+        console.error('Chart render error', e);
+      }
+    })();
+  </script>
+
+  <script>
+    (function(){
+      try {
+        const trendLabels = [
+          {% for l in trend_labels %}"{{ l }}"{% if not forloop.last %}, {% endif %}{% endfor %}
+        ];
+        const trendValues = [
+          {% for v in trend_values %}{{ v }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        ];
+
+        const ctx = document.getElementById('payrollTrendLine');
+        if (!ctx) return;
+        new Chart(ctx.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: trendLabels,
+            datasets: [{
+              label: 'Total Payroll Cost',
+              data: trendValues,
+              borderColor: '#1f77b4',
+              backgroundColor: 'rgba(31,119,180,0.08)',
+              tension: 0.25,
+              pointRadius: 3,
+              pointBackgroundColor: '#1f77b4'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, ticks: { color: '#222' } },
+              x: { ticks: { color: '#222' } }
+            }
+          }
+        });
+      } catch (e) {
+        console.error('Trend chart render error', e);
+      }
+    })();
+  </script>
+
+   
+
+</div>
+{% endblock %}

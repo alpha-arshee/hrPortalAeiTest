@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profile - Authentication System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user me-2"></i>My Profile
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if request.user.profile_picture %}
+                        <img id="profilePreview" src="{{ request.user.profile_picture.url }}" alt="Profile picture"
+                            class="rounded-circle"
+                            style="width:120px;height:120px;object-fit:cover;border:1px solid #e2e8f0;cursor:pointer;"
+                            title="Click to change" />
+                        {% else %}
+                        <img id="profilePreview" src="/static/img/default-avatar.png" alt="Profile picture"
+                            class="rounded-circle"
+                            style="min-width:120px;min-height:120px;max-width:120px;max-height:120px; line-height: 120px;text-align:center;border:1px solid #e2e8f0;cursor:pointer;"
+                            title="Click to change" />
+                        {% endif %}
+                    </div>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.first_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.middle_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.last_name|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.gender|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.email|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.phone_number|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.dob|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.addhar_id|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.department|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.profile_picture|as_crispy_field }}
+                            </div>
+                        </div>
+
+
+                        
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.skills|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.emergency_contact|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.current_address|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.permanent_address|as_crispy_field }}
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Try to find the file input by the stable id added in the form widget,
+        // then by name, then any file input as a last resort.
+        let fileInput = document.getElementById('id_profile_picture');
+        if (!fileInput) fileInput = document.querySelector('input[name="profile_picture"]');
+        if (!fileInput) fileInput = document.querySelector('input[type="file"]');
+        const preview = document.getElementById('profilePreview');
+        if (!fileInput) return;
+
+        // When the user selects a file, update the preview image
+        fileInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                if (preview) preview.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Make the preview clickable to open the file picker
+        if (preview) {
+            preview.style.cursor = 'pointer';
+            preview.addEventListener('click', function () {
+                try {
+                    fileInput.click();
+                } catch (err) {
+                    // ignore if click cannot be triggered
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}
