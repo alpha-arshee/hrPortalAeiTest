@@ -1,3 +1,0 @@
-# Additional runtime dependencies for production
-gunicorn
-whitenoise
