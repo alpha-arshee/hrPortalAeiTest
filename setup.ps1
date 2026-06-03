@@ -5,11 +5,11 @@ Write-Host "Setting up Django Two-Level Authentication System..." -ForegroundCol
 
 # Create virtual environment
 Write-Host "Creating virtual environment..." -ForegroundColor Yellow
-python -m venv venv
+python -m venv .venv
 
 # Activate virtual environment
 Write-Host "Activating virtual environment..." -ForegroundColor Yellow
-& "venv\Scripts\Activate.ps1"
+& ".venv\Scripts\Activate.ps1"
 
 # Upgrade pip
 Write-Host "Upgrading pip..." -ForegroundColor Yellow

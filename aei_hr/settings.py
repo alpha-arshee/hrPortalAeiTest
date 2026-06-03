@@ -14,13 +14,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-your-secret-key-here')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='127.0.0.1,localhost,192.168.1.5').split(',') if h.strip()]
-# ALLOWED_HOSTS = [
-#     '192.168.1.5',  # Local network IP for testing
-# ]
+# ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='127.0.0.1,localhost,192.168.1.5').split(',') if h.strip()]
+# # ALLOWED_HOSTS = [
+# #     '192.168.1.5',  # Local network IP for testing
+# # ]
 
+ALLOWED_HOSTS = ["*"]  # Allow all hosts (not recommended for production, but simplifies testing)
 
 # Application definition
 INSTALLED_APPS = [
@@ -71,13 +72,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'aei_hr.wsgi.application'
 
 # Database configuration - MongoDB with djongo
+raw_mongo_env = os.environ.get('MONGO_URL') or os.environ.get('MONGO_PUBLIC_URL') or os.environ.get('MONGODB_HOST')
+mongo_host = raw_mongo_env if raw_mongo_env else config('MONGODB_HOST', default='mongodb://localhost:27017')
+
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': config('DB_NAME', default='aei_db'),
         'ENFORCE_SCHEMA': False,
         'CLIENT': {
-            'host': config('MONGODB_HOST', default='mongodb://localhost:27017'),
+            'host': mongo_host,
             'maxPoolSize': int(config('MONGODB_MAX_POOL', default=50)),
             'minPoolSize': int(config('MONGODB_MIN_POOL', default=5)),
             'maxIdleTimeMS': int(config('MONGODB_MAX_IDLE_MS', default=30000)),
@@ -87,14 +91,6 @@ DATABASES = {
         }
     }
 }
-
-# SQLite fallback configuration (uncomment if MongoDB is not available)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
