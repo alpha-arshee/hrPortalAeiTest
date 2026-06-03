@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    command: gunicorn aei_hr.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    ports:
+      - '8000:8000'
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      - DB_NAME=${DB_NAME}
+      - MONGODB_HOST=${MONGODB_HOST}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+    volumes:
+      - static_volume:/app/staticfiles
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:5.0
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
+  static_volume:
