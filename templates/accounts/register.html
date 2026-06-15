@@ -1,6 +1,193 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
+{% block title %}Register - AEI HR System{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media (max-width: 575.98px) {
+        .register-wrapper {
+            padding-top: 1.5rem !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .card-body {
+            padding: 1.25rem !important;
+        }
+
+        /* Stack all col-md columns to full width on mobile */
+        .form-row-mobile > [class*="col-md"] {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Profile picture preview */
+        #imagePreviewWrapper {
+            text-align: center;
+        }
+    }
+
+    /* Profile picture preview box */
+    #imagePreview {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+        display: none;
+        border: 3px solid #0d6efd;
+        margin-top: 0.5rem;
+    }
+
+    #imagePreviewWrapper {
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container register-wrapper py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+
+            <div class="card shadow">
+                <!-- Header -->
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Employee Registration
+                    </h4>
+                </div>
+
+                <!-- Body -->
+                <div class="card-body p-4">
+                    <p class="text-muted text-center mb-4 small">
+                        Create your employee account. Your registration will be reviewed by HR before activation.
+                    </p>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Name Row -->
+                        <div class="row g-3 mb-1">
+                            <div class="col-12 col-md-4">
+                                {{ form.first_name|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                {{ form.middle_name|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                {{ form.last_name|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Gender -->
+                        <div class="row g-3 mb-1">
+                            <div class="col-12 col-sm-6 col-md-4">
+                                {{ form.gender|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Username & Employee ID -->
+                        <div class="row g-3 mb-1">
+                            <div class="col-12 col-md-6">
+                                {{ form.username|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {{ form.employee_id|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="row g-3 mb-1">
+                            <div class="col-12">
+                                {{ form.email|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Phone & Department -->
+                        <div class="row g-3 mb-1">
+                            <div class="col-12 col-md-6">
+                                {{ form.phone_number|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {{ form.department|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Date of Joining & Profile Picture -->
+                        <div class="row g-3 mb-1">
+                            <div class="col-12 col-md-6">
+                                {{ form.date_of_joining|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {{ form.profile_picture|as_crispy_field }}
+                                <!-- Live preview -->
+                                <div id="imagePreviewWrapper">
+                                    <img id="imagePreview" src="#" alt="Preview">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Passwords -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-6">
+                                {{ form.password1|as_crispy_field }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {{ form.password2|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>Register
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Footer -->
+                <div class="card-footer text-center py-3 bg-light">
+                    <p class="mb-0 small">
+                        Already have an account?
+                        <a href="{% url 'accounts:login' %}" class="text-decoration-none fw-semibold">Login here</a>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.querySelector('input[type="file"]');
+        const preview = document.getElementById('imagePreview');
+
+        if (fileInput && preview) {
+            fileInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'inline-block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.style.display = 'none';
+                    preview.src = '#';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
 {% block title %}Register - Authentication System{% endblock %}
 
 {% block content %}
@@ -112,4 +299,4 @@
     });
 </script>
 {% endblock %}
-{% endblock %}
+{% endblock %} {% endcomment %}
