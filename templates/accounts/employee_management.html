@@ -1,5 +1,486 @@
 {% extends 'base.html' %}
 
+{% block title %}Employee Management{% endblock %}
+
+{% block content %}
+<style>
+  /* ── Page variables (inherit base's --primary-blue: #2563eb) ── */
+  :root {
+    --surface: #f8fafc;
+    --card-bg: #ffffff;
+    --border: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --blue: #2563eb;
+    --blue-light: #eff6ff;
+    --blue-mid: #dbeafe;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow: 0 4px 12px rgba(0,0,0,.08);
+  }
+
+  .em-page { background: var(--surface); min-height: 100vh; padding: 28px 24px 48px; }
+
+  /* ── Page header ── */
+  .em-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .em-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .em-header h1 i { color: var(--blue); font-size: 1.3rem; }
+
+  .btn-analytics {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .btn-analytics:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-mid);
+  }
+  .btn-analytics i { color: var(--blue); }
+
+  /* ── Filter card ── */
+  .filter-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .filter-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 14px;
+    align-items: end;
+  }
+  @media (max-width: 768px) {
+    .filter-grid { grid-template-columns: 1fr 1fr; }
+    .filter-actions { grid-column: 1 / -1; }
+  }
+  @media (max-width: 480px) {
+    .filter-grid { grid-template-columns: 1fr; }
+  }
+  .filter-group label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 6px;
+  }
+  .filter-input, .filter-select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    background: var(--surface);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .filter-input:focus, .filter-select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-mid);
+    background: #fff;
+  }
+  .filter-actions { display: flex; gap: 8px; }
+  .btn-search {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px;
+    background: var(--blue); color: #fff;
+    border: none; border-radius: 7px;
+    font-size: 0.875rem; font-weight: 600; cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-search:hover { background: #1d4ed8; }
+  .btn-clear {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 14px;
+    background: transparent; color: var(--text-secondary);
+    border: 1.5px solid var(--border); border-radius: 7px;
+    font-size: 0.875rem; font-weight: 500;
+    text-decoration: none; transition: border-color .15s, color .15s;
+  }
+  .btn-clear:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+
+  /* ── Main table card ── */
+  .table-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .table-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .table-card-header h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .table-card-header h2 i { color: var(--blue); }
+  .count-badge {
+    background: var(--blue-light);
+    color: var(--blue);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* ── Table ── */
+  .em-table { width: 100%; border-collapse: collapse; }
+  .em-table thead tr {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .em-table thead th {
+    padding: 11px 16px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    white-space: nowrap;
+    text-align: left;
+  }
+  .em-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+  }
+  .em-table tbody tr:last-child { border-bottom: none; }
+  .em-table tbody tr:hover { background: var(--blue-light); }
+  .em-table td { padding: 14px 16px; vertical-align: middle; font-size: 0.875rem; color: var(--text-primary); }
+
+  /* ── Avatar cell ── */
+  .user-cell { display: flex; align-items: center; gap: 12px; }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0;
+  }
+  .avatar-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--blue-mid);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .avatar-icon i { color: var(--blue); font-size: 1.1rem; }
+  .user-info .name { font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+  .user-info .meta { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+  }
+  .badge-blue   { background: var(--blue-light);  color: var(--blue); }
+  .badge-gray   { background: #f1f5f9;             color: var(--text-secondary); }
+  .badge-green  { background: var(--green-light);  color: var(--green); }
+  .badge-amber  { background: var(--amber-light);  color: var(--amber); }
+  .badge-red    { background: var(--red-light);    color: var(--red); }
+
+  /* ── Action buttons ── */
+  .action-group { display: flex; gap: 6px; align-items: center; }
+  .action-btn {
+    width: 32px; height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 7px; border: 1.5px solid var(--border);
+    background: var(--card-bg); color: var(--text-secondary);
+    font-size: 0.8rem; cursor: pointer; text-decoration: none;
+    transition: all .15s;
+  }
+  .action-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+  .action-btn.approve:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
+  .action-btn.disable:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+  .action-btn form { margin: 0; padding: 0; }
+  .action-btn button {
+    background: none; border: none; color: inherit;
+    width: 100%; height: 100%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center; padding: 64px 24px;
+    color: var(--text-secondary);
+  }
+  .empty-state i { font-size: 2.5rem; color: var(--text-muted); margin-bottom: 16px; display: block; }
+  .empty-state h3 { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+  .empty-state p { font-size: 0.875rem; margin: 0; }
+
+  /* ── Pagination ── */
+  .pagination-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .page-btn {
+    padding: 6px 13px; border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: var(--card-bg); color: var(--text-secondary);
+    font-size: 0.82rem; font-weight: 500;
+    text-decoration: none; transition: all .15s;
+  }
+  .page-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .page-btn.active {
+    background: var(--blue); border-color: var(--blue);
+    color: #fff; font-weight: 700;
+  }
+
+  /* ── Scrollable table on mobile ── */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+</style>
+
+<div class="em-page">
+
+  <!-- Header -->
+  <div class="em-header">
+    <h1><i class="fas fa-users"></i> Employee Management</h1>
+    <a href="{% url 'accounts:analytics' %}" class="btn-analytics">
+      <i class="fas fa-chart-line"></i> Analytics
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-card">
+    <form method="get">
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label for="search">Search</label>
+          <input type="text" class="filter-input" id="search" name="search"
+                 value="{{ search_query }}"
+                 placeholder="Name, username, email, or ID…">
+        </div>
+        <div class="filter-group">
+          <label for="role">Role</label>
+          <select class="filter-select" id="role" name="role">
+            <option value="all"      {% if role_filter == 'all' %}selected{% endif %}>All Roles</option>
+            <option value="employee" {% if role_filter == 'employee' %}selected{% endif %}>Employee</option>
+            <option value="hr_admin" {% if role_filter == 'hr_admin' %}selected{% endif %}>HR Admin</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="status">Status</label>
+          <select class="filter-select" id="status" name="status">
+            <option value="all"      {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+            <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="pending"  {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+          </select>
+        </div>
+        <div class="filter-actions filter-group">
+          <label style="visibility:hidden">Go</label>
+          <div style="display:flex;gap:8px;">
+            <button type="submit" class="btn-search"><i class="fas fa-search"></i> Search</button>
+            <a href="{% url 'accounts:employee_management' %}" class="btn-clear"><i class="fas fa-times"></i> Clear</a>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table card -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <h2><i class="fas fa-list"></i> All Employees</h2>
+      <span class="count-badge">{{ page_obj.paginator.count }} users</span>
+    </div>
+
+    {% if page_obj %}
+      <div class="table-scroll">
+        <table class="em-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Employee ID</th>
+              <th>Role</th>
+              <th>Department</th>
+              <th>Date of Joining</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for employee in employees %}
+            <tr>
+              <!-- User cell -->
+              <td>
+                <div class="user-cell">
+                  {% if employee.profile_picture %}
+                    <img src="{{ employee.profile_picture.url }}" class="avatar" alt="Profile">
+                  {% else %}
+                    <div class="avatar-icon"><i class="fas fa-user"></i></div>
+                  {% endif %}
+                  <div class="user-info">
+                    <div class="name">{{ employee.get_full_name }}</div>
+                    <div class="meta">
+                      {{ employee.username }}<br>
+                      {{ employee.email }}
+                      {% if employee.company_email %}<br>{{ employee.company_email }}{% endif %}
+                      {% if employee.gender %} · {{ employee.gender|capfirst }}{% endif %}
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <td>{{ employee.employee_id|default:"—" }}</td>
+
+              <!-- Role -->
+              <td>
+                {% if employee.role == 'hr_admin' %}
+                  <span class="badge badge-blue"><i class="fas fa-user-shield"></i> HR Admin</span>
+                {% else %}
+                  <span class="badge badge-gray"><i class="fas fa-user"></i> Employee</span>
+                {% endif %}
+              </td>
+
+              <td>{{ employee.department|default:"—" }}</td>
+              <td>{{ employee.date_of_joining|date:"M d, Y"|default:"—" }}</td>
+
+              <!-- Status -->
+              <td>
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                  {% if employee.is_approved %}
+                    <span class="badge badge-green"><i class="fas fa-check-circle"></i> Approved</span>
+                  {% else %}
+                    <span class="badge badge-amber"><i class="fas fa-clock"></i> Pending</span>
+                  {% endif %}
+                  {% if not employee.is_active %}
+                    <span class="badge badge-red"><i class="fas fa-ban"></i> Inactive</span>
+                  {% endif %}
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <div class="action-group">
+                  <!-- View -->
+                  <a href="{% url 'accounts:employee_detail' employee.id %}"
+                     class="action-btn" title="View profile">
+                    <i class="fas fa-eye"></i>
+                  </a>
+
+                  <!-- Approve -->
+                  {% if not employee.is_approved %}
+                  <div class="action-btn approve" title="Approve employee">
+                    <form method="post" action="{% url 'accounts:reactivate_employee' employee.id %}">
+                      {% csrf_token %}
+                      <button type="submit"><i class="fas fa-check"></i></button>
+                    </form>
+                  </div>
+                  {% endif %}
+
+                  <!-- Disable -->
+                  {% if employee.is_active %}
+                  <div class="action-btn disable" title="Disable account">
+                    <form method="post" action="{% url 'accounts:reject_employee' employee.id %}">
+                      {% csrf_token %}
+                      <button type="submit"><i class="fas fa-ban"></i></button>
+                    </form>
+                  </div>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-users"></i>
+        <h3>No employees found</h3>
+        <p>Try adjusting your search or filters.</p>
+      </div>
+    {% endif %}
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-footer">
+      {% if page_obj.has_previous %}
+        <a class="page-btn" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter != 'all' %}&role={{ role_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">« First</a>
+        <a class="page-btn" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter != 'all' %}&role={{ role_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Prev</a>
+      {% endif %}
+
+      <span class="page-btn active">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+
+      {% if page_obj.has_next %}
+        <a class="page-btn" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter != 'all' %}&role={{ role_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Next</a>
+        <a class="page-btn" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter != 'all' %}&role={{ role_filter }}{% endif %}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}">Last »</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div><!-- /table-card -->
+</div><!-- /em-page -->
+
+{% block extra_js %}
+<script>
+  /* Inline form confirm for approve/disable actions */
+  document.querySelectorAll('.action-btn.approve form, .action-btn.disable form').forEach(form => {
+    form.addEventListener('submit', e => {
+      const isApprove = form.closest('.action-btn').classList.contains('approve');
+      const msg = isApprove
+        ? 'Approve this employee?'
+        : 'Disable this employee account?';
+      if (!confirm(msg)) e.preventDefault();
+    });
+  });
+</script>
+{% endblock %}
+
+{% endblock %}
+
+
+{% comment %} {% extends 'base.html' %}
+
 {% block title %}Employee Management - Authentication System{% endblock %}
 
 {% block content %}
@@ -259,4 +740,4 @@
     }
 </script>
 {% endblock %}
-{% endblock %}
+{% endblock %} {% endcomment %}

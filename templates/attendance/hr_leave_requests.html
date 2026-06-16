@@ -1,4 +1,464 @@
 {% extends 'base.html' %}
+
+{% block title %}Leave Requests Management{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-3 px-lg-4 py-4">
+
+    <!-- Header -->
+
+    <div class="page-header mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-calendar-minus text-primary me-2"></i>
+                Leave Requests
+            </h2>
+
+            <p class="text-muted mb-0">
+                Review, approve, and manage employee leave applications.
+            </p>
+        </div>
+
+        <a class="btn btn-outline-secondary"
+           href="{% url 'accounts:dashboard' %}">
+
+            <i class="fas fa-arrow-left me-2"></i>
+            HR Dashboard
+
+        </a>
+
+    </div>
+
+    <!-- Filter Card -->
+
+    <div class="card filter-card mb-4">
+
+        <div class="card-body">
+
+            <form method="get">
+
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-md-4 col-lg-3">
+
+                        <label class="form-label fw-semibold">
+                            Leave Status
+                        </label>
+
+                        <select name="status" class="form-select">
+
+                            <option value="pending"
+                                {% if filter_status == 'pending' %}selected{% endif %}>
+                                Pending
+                            </option>
+
+                            <option value="approved"
+                                {% if filter_status == 'approved' %}selected{% endif %}>
+                                Approved
+                            </option>
+
+                            <option value="rejected"
+                                {% if filter_status == 'rejected' %}selected{% endif %}>
+                                Rejected
+                            </option>
+
+                            <option value="all"
+                                {% if filter_status == 'all' %}selected{% endif %}>
+                                All Requests
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3 col-lg-2">
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+
+                            <i class="fas fa-filter me-2"></i>
+                            Filter
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Summary -->
+
+    {% if leave_requests %}
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+
+            <div class="summary-card">
+
+                <h3>{{ leave_requests|length }}</h3>
+
+                <p>Total Requests</p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="summary-card">
+
+                <h3>{{ filter_status|title }}</h3>
+
+                <p>Current Filter</p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="summary-card">
+
+                <h3>
+                    <i class="fas fa-users"></i>
+                </h3>
+
+                <p>Employee Applications</p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+    <!-- Leave Requests Table -->
+
+    {% if leave_requests %}
+
+    <div class="card leave-card">
+
+        <div class="card-header">
+
+            <h5 class="mb-0">
+                Leave Applications
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table leave-table mb-0">
+
+                    <thead>
+
+                        <tr>
+                            <th>#</th>
+                            <th>Employee</th>
+                            <th>Period</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Document</th>
+                            <th>Status</th>
+                            <th>Decision Date</th>
+                            <th>Decision By</th>
+                            <th>Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for lv in leave_requests %}
+
+                        <tr>
+
+                            <td>
+                                {{ forloop.counter }}
+                            </td>
+
+                            <td>
+
+                                <div class="fw-semibold">
+                                    {{ lv.user.get_full_name|default:lv.user.username }}
+                                </div>
+
+                                {% if lv.user.employee_id %}
+                                <small class="text-muted">
+                                    ID: {{ lv.user.employee_id }}
+                                </small>
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                <small>
+                                    {{ lv.start_date }}
+                                    <br>
+                                    to
+                                    <br>
+                                    {{ lv.end_date }}
+                                </small>
+
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-info">
+                                    {{ lv.leave_type|capfirst }}
+                                </span>
+
+                            </td>
+
+                            <td class="reason-cell">
+
+                                {{ lv.reason|default:'-' }}
+
+                            </td>
+
+                            <td>
+
+                                {% if lv.supporting_document %}
+
+                                <a href="{{ lv.supporting_document.url }}"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-primary">
+
+                                    <i class="fas fa-file-alt me-1"></i>
+                                    View
+
+                                </a>
+
+                                {% else %}
+                                -
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if lv.status == 'approved' %}
+                                    <span class="badge bg-success">
+                                        Approved
+                                    </span>
+
+                                {% elif lv.status == 'rejected' %}
+                                    <span class="badge bg-danger">
+                                        Rejected
+                                    </span>
+
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">
+                                        Pending
+                                    </span>
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if lv.decision_date %}
+                                    {{ lv.decision_date }}
+                                {% else %}
+                                    -
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if lv.decision_by %}
+
+                                <div>
+                                    {{ lv.decision_by.get_full_name|default:lv.decision_by.username }}
+                                </div>
+
+                                <small class="text-muted">
+                                    {{ lv.decision_by.employee_id }}
+                                </small>
+
+                                {% else %}
+                                    -
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if lv.status == 'pending' %}
+
+                                <div class="action-buttons">
+
+                                    <form action="{% url 'attendance:approve_leave' lv.id %}"
+                                          method="post">
+
+                                        {% csrf_token %}
+
+                                        <button class="btn btn-success btn-sm">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+
+                                    </form>
+
+                                    <form action="{% url 'attendance:reject_leave' lv.id %}"
+                                          method="post">
+
+                                        {% csrf_token %}
+
+                                        <button class="btn btn-danger btn-sm">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                                {% else %}
+
+                                <span class="text-muted">
+                                    Completed
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <div class="alert alert-info border-0 shadow-sm">
+
+        <i class="fas fa-info-circle me-2"></i>
+
+        No leave requests found.
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+<style>
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.filter-card,
+.leave-card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 8px 25px rgba(0,0,0,.06);
+}
+
+.summary-card{
+    background:#fff;
+    border-radius:16px;
+    padding:20px;
+    text-align:center;
+    box-shadow:0 5px 20px rgba(0,0,0,.05);
+    height:100%;
+}
+
+.summary-card h3{
+    color:#2563eb;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+.summary-card p{
+    margin:0;
+    color:#64748b;
+}
+
+.leave-card .card-header{
+    background:#fff;
+    border-bottom:1px solid #eef2f7;
+    padding:18px 24px;
+}
+
+.leave-table{
+    width:100%;
+}
+
+.leave-table thead{
+    background:#f8fafc;
+}
+
+.leave-table th{
+    white-space:nowrap;
+    font-weight:600;
+    color:#475569;
+}
+
+.leave-table td{
+    vertical-align:middle;
+}
+
+.reason-cell{
+    max-width:280px;
+    white-space:normal;
+    word-break:break-word;
+}
+
+.action-buttons{
+    display:flex;
+    gap:6px;
+}
+
+.form-select{
+    min-height:48px;
+    border-radius:12px;
+}
+
+@media (max-width:768px){
+
+    .page-header{
+        align-items:flex-start;
+    }
+
+    .leave-table th,
+    .leave-table td{
+        font-size:.9rem;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
   <h2>Leave Requests (HR)</h2>
@@ -81,4 +541,4 @@
 
   <a class="btn btn-outline-secondary" href="{% url 'accounts:dashboard' %}">Back to HR Dashboard</a>
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}

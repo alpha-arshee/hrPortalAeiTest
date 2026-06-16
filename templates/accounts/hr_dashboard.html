@@ -1,5 +1,544 @@
 {% extends 'base.html' %}
 
+{% block title %}HR Dashboard{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --surface: #f8fafc;
+    --card-bg: #ffffff;
+    --border: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --blue: #2563eb;
+    --blue-light: #eff6ff;
+    --blue-mid: #dbeafe;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --purple: #7c3aed;
+    --purple-light: #f5f3ff;
+    --teal: #0891b2;
+    --teal-light: #ecfeff;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  }
+
+  .dash { background: var(--surface); min-height: 100vh; padding: 28px 24px 48px; }
+
+  /* ── Header ── */
+  .dash-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 10px;
+  }
+  .dash-header-left h1 {
+    font-size: 1.45rem; font-weight: 700; color: var(--text-primary);
+    margin: 0 0 3px; display: flex; align-items: center; gap: 9px;
+  }
+  .dash-header-left h1 i { color: var(--blue); font-size: 1.2rem; }
+  .dash-header-left p { font-size: 0.875rem; color: var(--text-secondary); margin: 0; }
+  .dash-header-right { font-size: 0.8rem; color: var(--text-muted); }
+
+  /* ── Birthday alert ── */
+  .birthday-alert {
+    background: var(--green-light); border: 1px solid #bbf7d0;
+    border-radius: var(--radius); padding: 12px 18px;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 20px; font-size: 0.875rem; color: var(--green);
+  }
+  .birthday-alert i { font-size: 1rem; flex-shrink: 0; }
+  .birthday-alert strong { font-weight: 700; margin-right: 4px; }
+
+  /* ── Stat cards ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 600px)  { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 18px 16px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; gap: 6px;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .stat-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.1); transform: translateY(-1px); }
+  .stat-card.clickable { cursor: pointer; }
+  .stat-icon {
+    width: 38px; height: 38px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; margin-bottom: 4px;
+  }
+  .stat-icon.blue   { background: var(--blue-light);   color: var(--blue); }
+  .stat-icon.green  { background: var(--green-light);  color: var(--green); }
+  .stat-icon.amber  { background: var(--amber-light);  color: var(--amber); }
+  .stat-icon.red    { background: var(--red-light);    color: var(--red); }
+  .stat-icon.purple { background: var(--purple-light); color: var(--purple); }
+  .stat-icon.teal   { background: var(--teal-light);   color: var(--teal); }
+  .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+  .stat-label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; line-height: 1.3; }
+  .stat-sub   { font-size: 0.7rem; color: var(--text-muted); }
+
+  /* ── Birthday floating panel ── */
+  .bday-panel {
+    position: absolute; z-index: 1050;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 30px rgba(0,0,0,.12);
+    min-width: 280px; max-width: 380px; max-height: 320px; overflow: auto;
+  }
+  .bday-panel-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: var(--card-bg);
+  }
+  .bday-panel-header h6 { font-size: 0.875rem; font-weight: 700; margin: 0; color: var(--text-primary); }
+  .bday-close-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-size: 0.9rem; padding: 2px 6px; border-radius: 5px;
+  }
+  .bday-close-btn:hover { background: var(--surface); color: var(--text-primary); }
+  .bday-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; border-bottom: 1px solid var(--border); gap: 8px;
+  }
+  .bday-item:last-child { border-bottom: none; }
+  .bday-name { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+  .bday-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+  .bday-date { font-size: 0.78rem; color: var(--text-secondary); text-align: right; }
+  .bday-days { font-size: 0.72rem; color: var(--blue); font-weight: 600; }
+
+  /* ── Content grid ── */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 768px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+  /* ── Cards ── */
+  .dash-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .dash-card-header {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .dash-card-header h2 {
+    font-size: 0.9rem; font-weight: 700; color: var(--text-primary);
+    margin: 0; display: flex; align-items: center; gap: 8px;
+  }
+  .dash-card-header h2 i { color: var(--blue); }
+  .dash-card-body { padding: 16px 18px; flex: 1; }
+
+  .view-all-link {
+    font-size: 0.78rem; font-weight: 600; color: var(--blue);
+    text-decoration: none; padding: 4px 10px; border-radius: 6px;
+    transition: background .12s;
+  }
+  .view-all-link:hover { background: var(--blue-light); }
+
+  /* ── Quick actions ── */
+  .action-list { display: flex; flex-direction: column; gap: 8px; }
+  .action-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 8px;
+    border: 1.5px solid var(--border);
+    text-decoration: none; color: var(--text-primary);
+    font-size: 0.875rem; font-weight: 500;
+    transition: border-color .15s, background .15s, color .15s;
+  }
+  .action-link i { width: 16px; text-align: center; color: var(--blue); }
+  .action-link:hover { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+  .action-link.pending {
+    border-color: var(--amber); background: var(--amber-light); color: var(--amber);
+  }
+  .action-link.pending i { color: var(--amber); }
+  .action-link.pending:hover { background: #fef3c7; }
+
+  /* ── Tables ── */
+  .dash-table { width: 100%; border-collapse: collapse; }
+  .dash-table thead tr { border-bottom: 1px solid var(--border); }
+  .dash-table thead th {
+    padding: 9px 12px;
+    font-size: 0.72rem; font-weight: 700; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: .05em; text-align: left;
+  }
+  .dash-table tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  .dash-table tbody tr:last-child { border-bottom: none; }
+  .dash-table tbody tr:hover { background: var(--blue-light); }
+  .dash-table td { padding: 10px 12px; font-size: 0.82rem; color: var(--text-primary); vertical-align: middle; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  .user-mini { display: flex; align-items: center; gap: 9px; }
+  .avatar-sm {
+    width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  }
+  .avatar-sm-icon {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--blue-mid); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .avatar-sm-icon i { color: var(--blue); font-size: 0.75rem; }
+  .user-mini-name { font-weight: 600; font-size: 0.82rem; color: var(--text-primary); }
+  .user-mini-sub  { font-size: 0.72rem; color: var(--text-muted); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 8px; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 600; white-space: nowrap;
+  }
+  .badge-green  { background: var(--green-light);  color: var(--green); }
+  .badge-amber  { background: var(--amber-light);  color: var(--amber); }
+
+  .icon-btn {
+    width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 6px; border: 1.5px solid var(--border);
+    background: var(--card-bg); color: var(--text-secondary);
+    text-decoration: none; font-size: 0.75rem; transition: all .15s;
+  }
+  .icon-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+
+  /* ── Empty state ── */
+  .empty-mini { text-align: center; padding: 32px 16px; color: var(--text-muted); }
+  .empty-mini i { font-size: 1.8rem; margin-bottom: 10px; display: block; }
+  .empty-mini p { font-size: 0.82rem; margin: 0; }
+</style>
+
+<div class="dash">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div class="dash-header-left">
+      <h1><i class="fas fa-tachometer-alt"></i> HR Dashboard</h1>
+      <p>Welcome back, <strong>{{ user.first_name|default:user.username }}</strong>!</p>
+    </div>
+    <div class="dash-header-right">
+      Last login: {{ user.last_login|date:"M d, Y · H:i" }}
+    </div>
+  </div>
+
+  <!-- Birthday alert -->
+  {% if todays_birthdays %}
+  <div class="birthday-alert">
+    <i class="fas fa-birthday-cake"></i>
+    <div>
+      <strong>Today's birthdays:</strong>
+      {% for b in todays_birthdays %}
+        {{ b.name }} ({{ b.employee_id }}){% if not forloop.last %}, {% endif %}
+      {% endfor %}
+      🎉
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Stat cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+      <div class="stat-value">{{ total_employees|default:0 }}</div>
+      <div class="stat-label">Total Employees</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fas fa-clipboard-check"></i></div>
+      <div class="stat-value">{{ attendance_today|default:0 }}</div>
+      <div class="stat-label">Attendance Today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="fas fa-umbrella-beach"></i></div>
+      <div class="stat-value">{{ employees_on_leave_today|default:0 }}</div>
+      <div class="stat-label">On Leave Today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon teal"><i class="fas fa-user-plus"></i></div>
+      <div class="stat-value">{{ new_joinees_month|default:0 }}</div>
+      <div class="stat-label">New Joinees<br>This Month</div>
+    </div>
+    <div class="stat-card clickable" id="upcoming-birthdays-card">
+      <div class="stat-icon purple"><i class="fas fa-birthday-cake"></i></div>
+      <div class="stat-value">{{ upcoming_birthdays|length }}</div>
+      <div class="stat-label">Upcoming Birthdays</div>
+      <div class="stat-sub">
+        Next: {% if upcoming_birthdays %}{{ upcoming_birthdays.0.name }}{% else %}—{% endif %}
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red"><i class="fas fa-clock"></i></div>
+      <div class="stat-value">{{ pending_approvals|default:0 }}</div>
+      <div class="stat-label">Pending Approvals</div>
+    </div>
+  </div>
+
+  <!-- Birthday floating panel -->
+  <div id="upcoming-birthdays-floating" class="bday-panel d-none position-absolute">
+    <div class="bday-panel-header">
+      <h6><i class="fas fa-birthday-cake" style="color:var(--purple);margin-right:6px;"></i>Upcoming Birthdays</h6>
+      <button id="upcoming-birthdays-close" class="bday-close-btn" type="button">✕</button>
+    </div>
+    {% if upcoming_birthdays %}
+      {% for b in upcoming_birthdays %}
+      <div class="bday-item">
+        <div>
+          <div class="bday-name">{{ b.name }}</div>
+          <div class="bday-meta">{{ b.employee_id }}{% if b.department %} · {{ b.department }}{% endif %}</div>
+        </div>
+        <div class="bday-date">
+          {{ b.date|date:"M d" }}
+          <div class="bday-days">in {{ b.days_until }}d</div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="padding:20px 16px;font-size:.82rem;color:var(--text-muted);">No birthdays in the next 30 days.</div>
+    {% endif %}
+  </div>
+
+  <!-- Quick Actions + Recent Registrations -->
+  <div class="content-grid">
+
+    <!-- Quick Actions -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+      </div>
+      <div class="dash-card-body">
+        <div class="action-list">
+          <a href="{% url 'accounts:employee_management' %}" class="action-link">
+            <i class="fas fa-users"></i> Manage Employees
+          </a>
+          <a href="{% url 'accounts:analytics' %}" class="action-link">
+            <i class="fas fa-chart-line"></i> View Analytics
+          </a>
+          <a href="{% url 'accounts:employee_detail' user.id %}" class="action-link">
+            <i class="fas fa-user"></i> My Profile
+          </a>
+          <a href="{% url 'attendance:employee_attendance_log' %}" class="action-link">
+            <i class="fas fa-clipboard-list"></i> Attendance Log
+          </a>
+          <a href="{% url 'attendance:hr_leave_requests' %}" class="action-link">
+            <i class="fas fa-file-signature"></i> Leave Requests
+          </a>
+          {% if pending_approvals > 0 %}
+          <a href="{% url 'accounts:employee_management' %}?status=pending" class="action-link pending">
+            <i class="fas fa-clock"></i> Review Pending ({{ pending_approvals }})
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Registrations -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h2><i class="fas fa-user-plus"></i> Recent Registrations</h2>
+        <a href="{% url 'accounts:employee_management' %}" class="view-all-link">View All →</a>
+      </div>
+      {% if recent_registrations %}
+      <div class="table-scroll">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Department</th>
+              <th>Joined</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for employee in recent_registrations %}
+            <tr>
+              <td>
+                <div class="user-mini">
+                  {% if employee.profile_picture %}
+                    <img src="{{ employee.profile_picture.url }}" class="avatar-sm" alt="">
+                  {% else %}
+                    <div class="avatar-sm-icon"><i class="fas fa-user"></i></div>
+                  {% endif %}
+                  <div>
+                    <div class="user-mini-name">{{ employee.get_full_name }}</div>
+                    <div class="user-mini-sub">{{ employee.username }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ employee.department|default:"—" }}</td>
+              <td>{{ employee.created_at|date:"M d, Y" }}</td>
+              <td>
+                {% if employee.is_approved %}
+                  <span class="badge badge-green"><i class="fas fa-check-circle"></i> Approved</span>
+                {% else %}
+                  <span class="badge badge-amber"><i class="fas fa-clock"></i> Pending</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'accounts:employee_detail' employee.id %}" class="icon-btn" title="View">
+                  <i class="fas fa-eye"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="dash-card-body">
+        <div class="empty-mini">
+          <i class="fas fa-inbox"></i>
+          <p>No recent registrations.</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Attendance Log + Pending Leave Requests -->
+  <div class="bottom-grid">
+
+    <!-- Attendance Log -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h2><i class="fas fa-clipboard-list"></i> Recent Attendance</h2>
+        <a href="{% url 'attendance:employee_attendance_log' %}" class="view-all-link">View All →</a>
+      </div>
+      {% if recent_attendance_logs %}
+      <div class="table-scroll">
+        <table class="dash-table">
+          <thead>
+            <tr><th>Employee</th><th>Date</th><th>Time</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for log in recent_attendance_logs %}
+            <tr>
+              <td>
+                {% if log.user %}{{ log.user.get_full_name|default:log.user.username }}
+                {% elif log.first_name %}{{ log.first_name }}
+                {% else %}{{ log.employee_id }}{% endif %}
+              </td>
+              <td>{% if log.punch_date %}{{ log.punch_date|date:"M d" }}{% else %}—{% endif %}</td>
+              <td>{% if log.punch_time %}{{ log.punch_time }}{% else %}—{% endif %}</td>
+              <td>{% if log.status %}{{ log.status }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="dash-card-body">
+        <div class="empty-mini">
+          <i class="fas fa-clipboard-list"></i>
+          <p>No recent attendance records.</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Pending Leave Requests -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h2><i class="fas fa-file-signature"></i> Pending Leave Requests</h2>
+        <a href="{% url 'attendance:hr_leave_requests' %}" class="view-all-link">Manage →</a>
+      </div>
+      {% if pending_leave_requests %}
+      <div class="table-scroll">
+        <table class="dash-table">
+          <thead>
+            <tr><th>Employee</th><th>Type</th><th>Dates</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for lr in pending_leave_requests %}
+            <tr>
+              <td>{% if lr.user %}{{ lr.user.get_full_name|default:lr.user.username }}{% else %}—{% endif %}</td>
+              <td>{{ lr.leave_type|capfirst }}</td>
+              <td>{{ lr.start_date|date:"M d" }} – {{ lr.end_date|date:"M d" }}</td>
+              <td><span class="badge badge-amber">{{ lr.status|capfirst }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="dash-card-body">
+        <div class="empty-mini">
+          <i class="fas fa-file-signature"></i>
+          <p>No pending leave requests.</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div><!-- /bottom-grid -->
+
+</div><!-- /dash -->
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const card  = document.getElementById('upcoming-birthdays-card');
+    const panel = document.getElementById('upcoming-birthdays-floating');
+    const closeBtn = document.getElementById('upcoming-birthdays-close');
+    if (!card || !panel) return;
+
+    let autoClose = null;
+
+    function openPanel() {
+      const rect = card.getBoundingClientRect();
+      panel.style.left = Math.max(8, rect.left + window.scrollX) + 'px';
+      panel.style.top  = (rect.bottom + window.scrollY + 8) + 'px';
+      panel.style.minWidth = Math.max(280, rect.width) + 'px';
+      panel.classList.remove('d-none');
+      clearTimeout(autoClose);
+      autoClose = setTimeout(() => panel.classList.add('d-none'), 30000);
+    }
+
+    function closePanel() {
+      panel.classList.add('d-none');
+      clearTimeout(autoClose);
+    }
+
+    card.addEventListener('click', e => {
+      e.stopPropagation();
+      panel.classList.contains('d-none') ? openPanel() : closePanel();
+    });
+
+    closeBtn && closeBtn.addEventListener('click', e => { e.stopPropagation(); closePanel(); });
+
+    document.addEventListener('click', e => {
+      if (!panel.contains(e.target) && !card.contains(e.target)) closePanel();
+    });
+  });
+</script>
+{% endblock %}
+
+{% endblock %}
+
+
+{% comment %} {% extends 'base.html' %}
+
 {% block title %}HR Dashboard - Authentication System{% endblock %}
 
 {% block content %}
@@ -367,4 +906,4 @@
     </div>
 
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}

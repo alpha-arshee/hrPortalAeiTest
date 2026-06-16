@@ -1,5 +1,367 @@
 {% extends 'base.html' %}
 
+{% block title %}Employees Attendance Log{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-3 px-lg-4 py-4">
+
+    <!-- Header -->
+
+    <div class="page-header mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-calendar-check text-primary me-2"></i>
+                Employees Attendance Log
+            </h2>
+
+            <p class="text-muted mb-0">
+                Monitor attendance records and employee presence statistics.
+            </p>
+        </div>
+
+        <a class="btn btn-outline-secondary"
+           href="{% url 'attendance:hr_biometric_logs' %}">
+
+            <i class="fas fa-arrow-left me-2"></i>
+            Back to Dashboard
+
+        </a>
+
+    </div>
+
+    <!-- Filters -->
+
+    <div class="card filter-card mb-4">
+
+        <div class="card-body">
+
+            <form id="monthPickerForm" method="get">
+
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-md-4 col-lg-3">
+
+                        <label class="form-label">
+                            Month
+                        </label>
+
+                        <select id="month_select"
+                                name="month"
+                                class="form-select">
+
+                            <option value="1" {% if month == 1 %}selected{% endif %}>January</option>
+                            <option value="2" {% if month == 2 %}selected{% endif %}>February</option>
+                            <option value="3" {% if month == 3 %}selected{% endif %}>March</option>
+                            <option value="4" {% if month == 4 %}selected{% endif %}>April</option>
+                            <option value="5" {% if month == 5 %}selected{% endif %}>May</option>
+                            <option value="6" {% if month == 6 %}selected{% endif %}>June</option>
+                            <option value="7" {% if month == 7 %}selected{% endif %}>July</option>
+                            <option value="8" {% if month == 8 %}selected{% endif %}>August</option>
+                            <option value="9" {% if month == 9 %}selected{% endif %}>September</option>
+                            <option value="10" {% if month == 10 %}selected{% endif %}>October</option>
+                            <option value="11" {% if month == 11 %}selected{% endif %}>November</option>
+                            <option value="12" {% if month == 12 %}selected{% endif %}>December</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4 col-lg-3">
+
+                        <label class="form-label">
+                            Year
+                        </label>
+
+                        <select id="year_select"
+                                name="year"
+                                class="form-select">
+
+                            {% for y in years %}
+                            <option value="{{ y }}"
+                                {% if y == year %}selected{% endif %}>
+                                {{ y }}
+                            </option>
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4 col-lg-2">
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+
+                            <i class="fas fa-filter me-2"></i>
+                            Apply
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Summary -->
+
+    {% if absent_employees %}
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+
+            <div class="summary-card">
+
+                <h3>{{ absent_employees|length }}</h3>
+
+                <p>Employees Listed</p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="summary-card">
+
+                <h3>{{ month }}/{{ year }}</h3>
+
+                <p>Selected Period</p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="summary-card">
+
+                <h3>
+                    <i class="fas fa-users"></i>
+                </h3>
+
+                <p>Attendance Overview</p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+    <!-- Attendance Table -->
+
+    {% if absent_employees %}
+
+    <div class="card attendance-card">
+
+        <div class="card-header">
+
+            <h5 class="mb-0">
+                Employee Attendance Summary
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table attendance-table mb-0">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Employee ID</th>
+                            <th>Name</th>
+                            <th>Present Days</th>
+                            <th>Absent Days</th>
+                            <th>Period Days</th>
+                            <th class="text-center">Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for emp in absent_employees %}
+
+                        <tr>
+
+                            <td>
+                                {{ emp.employee_id|default:'-' }}
+                            </td>
+
+                            <td>
+                                {{ emp.name }}
+                            </td>
+
+                            <td>
+                                <span class="badge bg-success">
+                                    {{ emp.present_days }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-danger">
+                                    {{ emp.absent_days }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {{ emp.total_days }}
+                            </td>
+
+                            <td class="text-center">
+
+                                <a class="btn btn-sm btn-outline-primary"
+                                   href="{% url 'attendance:employee_attendance_detail' emp.user_id %}?year={{ year }}&month={{ month %}">
+
+                                    <i class="fas fa-eye me-1"></i>
+                                    View
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <div class="alert alert-success border-0 shadow-sm">
+
+        <i class="fas fa-check-circle me-2"></i>
+
+        No absent employees found for the selected period.
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+<style>
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.filter-card,
+.attendance-card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 8px 25px rgba(0,0,0,.06);
+}
+
+.summary-card{
+    background:#fff;
+    border-radius:16px;
+    padding:20px;
+    text-align:center;
+    box-shadow:0 5px 20px rgba(0,0,0,.05);
+    height:100%;
+}
+
+.summary-card h3{
+    color:#2563eb;
+    margin-bottom:8px;
+    font-weight:700;
+}
+
+.summary-card p{
+    margin:0;
+    color:#64748b;
+}
+
+.attendance-card .card-header{
+    background:#fff;
+    border-bottom:1px solid #eef2f7;
+    padding:18px 24px;
+}
+
+.attendance-table{
+    width:100%;
+}
+
+.attendance-table thead{
+    background:#f8fafc;
+}
+
+.attendance-table th{
+    font-weight:600;
+    color:#475569;
+    white-space:nowrap;
+}
+
+.attendance-table td{
+    vertical-align:middle;
+}
+
+.form-control,
+.form-select{
+    min-height:48px;
+    border-radius:12px;
+}
+
+@media (max-width:768px){
+
+    .page-header{
+        align-items:flex-start;
+    }
+
+    .attendance-table th,
+    .attendance-table td{
+        font-size:.9rem;
+    }
+
+}
+
+</style>
+
+<script>
+(function(){
+    const month = document.getElementById('month_select');
+    const year = document.getElementById('year_select');
+    const form = document.getElementById('monthPickerForm');
+
+    if(month && year && form){
+        month.addEventListener('change', () => form.submit());
+        year.addEventListener('change', () => form.submit());
+    }
+})();
+</script>
+
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+
 {% block title %}Employees Attendance Log {% endblock %}
 
 {% block content %}
@@ -11,7 +373,7 @@
         <form id="monthPickerForm" method="get" class="d-flex align-items-center" style="gap:8px;">
           <label for="month_select" class="mb-0">Month</label>
           <select id="month_select" name="month" class="form-select form-select-sm" style="width:auto;">
-            {% comment %} Render months manually below {% endcomment %}
+            
             <option value="1" {% if month == 1 %}selected{% endif %}>Jan</option>
             <option value="2" {% if month == 2 %}selected{% endif %}>Feb</option>
             <option value="3" {% if month == 3 %}selected{% endif %}>Mar</option>
@@ -85,4 +447,4 @@
     <div class="alert alert-success">No absent employees found today.</div>
   {% endif %}
 
-{% endblock %}
+{% endblock %} {% endcomment %}

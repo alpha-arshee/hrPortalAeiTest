@@ -1,6 +1,330 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Holiday Management{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-3 px-lg-4 py-4">
+
+    <!-- Header -->
+
+    <div class="page-header mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-calendar-day text-primary me-2"></i>
+                Holiday Management
+            </h2>
+
+            <p class="text-muted mb-0">
+                Create, manage, and maintain company holidays.
+            </p>
+        </div>
+
+        <a href="{% url 'attendance:hr_biometric_logs' %}"
+           class="btn btn-outline-secondary">
+
+            <i class="fas fa-arrow-left me-2"></i>
+            Attendance Dashboard
+
+        </a>
+
+    </div>
+
+    <!-- Messages -->
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} shadow-sm border-0">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+
+        <!-- Create Holiday -->
+
+        <div class="col-lg-4">
+
+            <div class="card holiday-card">
+
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Create Holiday
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <form method="post"
+                          action="{% url 'attendance:hr_mark_holiday' %}">
+
+                        {% csrf_token %}
+
+                        <input type="hidden"
+                               name="action"
+                               value="create">
+
+                        <div class="mb-3">
+
+                            <label class="form-label fw-semibold">
+                                Holiday Name
+                            </label>
+
+                            <input type="text"
+                                   class="form-control"
+                                   name="holiday_name"
+                                   placeholder="e.g. Independence Day"
+                                   required>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label fw-semibold">
+                                Holiday Date
+                            </label>
+
+                            <input type="date"
+                                   class="form-control"
+                                   name="holiday_date"
+                                   required>
+
+                        </div>
+
+                        <button class="btn btn-primary w-100">
+
+                            <i class="fas fa-calendar-plus me-2"></i>
+                            Create Holiday
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Existing Holidays -->
+
+        <div class="col-lg-8">
+
+            <div class="card holiday-card">
+
+                <div class="card-header d-flex justify-content-between align-items-center">
+
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Existing Holidays
+                    </h5>
+
+                    <span class="badge bg-primary">
+                        {{ holidays|length }} Holidays
+                    </span>
+
+                </div>
+
+                <div class="card-body p-0">
+
+                    {% if holidays %}
+
+                    <div class="table-responsive">
+
+                        <table class="table holiday-table mb-0">
+
+                            <thead>
+
+                                <tr>
+                                    <th>Holiday</th>
+                                    <th>Date</th>
+                                    <th width="120">Action</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for h in holidays %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <div class="fw-semibold">
+                                            {{ h.name }}
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+
+                                        {% if h.date %}
+                                            {{ h.date|date:"d M Y" }}
+                                        {% else %}
+                                            {{ h.date_str }}
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td>
+
+                                        <form method="post"
+                                              action="{% url 'attendance:hr_mark_holiday' %}">
+
+                                            {% csrf_token %}
+
+                                            <input type="hidden"
+                                                   name="action"
+                                                   value="delete">
+
+                                            <input type="hidden"
+                                                   name="original_date"
+                                                   value="{{ h.date_str }}">
+
+                                            <input type="hidden"
+                                                   name="original_name"
+                                                   value="{{ h.name }}">
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Delete this holiday for all users?');">
+
+                                                <i class="fas fa-trash-alt me-1"></i>
+                                                Delete
+
+                                            </button>
+
+                                        </form>
+
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    {% else %}
+
+                    <div class="empty-state">
+
+                        <i class="fas fa-calendar-times"></i>
+
+                        <h5>No Holidays Found</h5>
+
+                        <p>
+                            No holidays have been added yet.
+                        </p>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.holiday-card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 8px 25px rgba(0,0,0,.06);
+}
+
+.holiday-card .card-header{
+    background:#fff;
+    border-bottom:1px solid #eef2f7;
+    padding:18px 24px;
+}
+
+.form-control{
+    min-height:48px;
+    border-radius:12px;
+}
+
+.holiday-table{
+    width:100%;
+}
+
+.holiday-table thead{
+    background:#f8fafc;
+}
+
+.holiday-table th{
+    font-weight:600;
+    color:#475569;
+    white-space:nowrap;
+}
+
+.holiday-table td{
+    vertical-align:middle;
+}
+
+.empty-state{
+    text-align:center;
+    padding:60px 20px;
+}
+
+.empty-state i{
+    font-size:3rem;
+    color:#94a3b8;
+    margin-bottom:15px;
+}
+
+.empty-state h5{
+    margin-bottom:10px;
+}
+
+.empty-state p{
+    color:#64748b;
+    margin:0;
+}
+
+@media (max-width:768px){
+
+    .page-header{
+        align-items:flex-start;
+    }
+
+    .holiday-table th,
+    .holiday-table td{
+        font-size:.9rem;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
 <div class="container mt-4">
   <h2>Manage Holidays</h2>
@@ -60,4 +384,4 @@
 
   <a href="{% url 'attendance:hr_biometric_logs' %}" class="btn btn-link">Back to Biometric Logs</a>
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}

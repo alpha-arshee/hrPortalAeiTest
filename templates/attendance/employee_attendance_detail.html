@@ -1,5 +1,563 @@
 {% extends 'base.html' %}
 
+{% block title %}Attendance Detail – {{ employee.get_full_name|default:employee.username }}{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --surface: #f8fafc;
+    --card-bg: #ffffff;
+    --border: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --blue: #2563eb;
+    --blue-light: #eff6ff;
+    --blue-mid: #dbeafe;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --purple: #7c3aed;
+    --purple-light: #f5f3ff;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  }
+
+  .att-page { background: var(--surface); min-height: 100vh; padding: 28px 24px 48px; }
+
+  /* ── Header ── */
+  .att-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+  }
+  .att-header h1 {
+    font-size: 1.35rem; font-weight: 700; color: var(--text-primary);
+    margin: 0 0 4px; display: flex; align-items: center; gap: 8px;
+  }
+  .att-header h1 i { color: var(--blue); font-size: 1.1rem; }
+  .att-header p  { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+  .btn-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; background: var(--card-bg);
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 0.82rem; font-weight: 600; color: var(--text-secondary);
+    text-decoration: none; transition: all .15s; white-space: nowrap;
+  }
+  .btn-back:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* ── Summary stat strip ── */
+  .summary-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 600px) { .summary-strip { grid-template-columns: repeat(2,1fr); } }
+
+  .summary-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    padding: 16px; text-align: center;
+  }
+  .summary-card .s-val { font-size: 1.7rem; font-weight: 800; color: var(--text-primary); line-height: 1; }
+  .summary-card .s-lbl { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; }
+  .summary-card.green .s-val { color: var(--green); }
+  .summary-card.amber .s-val { color: var(--amber); }
+  .summary-card.red   .s-val { color: var(--red); }
+  .summary-card.blue  .s-val { color: var(--blue); }
+
+  /* ── Month picker ── */
+  .month-picker-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    padding: 14px 20px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .mp-label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; }
+  .mp-select {
+    padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 7px;
+    font-size: 0.875rem; color: var(--text-primary); background: var(--surface);
+    outline: none; transition: border-color .15s;
+  }
+  .mp-select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-mid); }
+  .btn-go {
+    padding: 7px 18px; background: var(--blue); color: #fff;
+    border: none; border-radius: 7px; font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; transition: background .15s;
+  }
+  .btn-go:hover { background: #1d4ed8; }
+
+  /* ── Section cards ── */
+  .sec-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    margin-bottom: 20px; overflow: hidden;
+  }
+  .sec-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .sec-header h2 {
+    font-size: 0.9rem; font-weight: 700; color: var(--text-primary);
+    margin: 0; display: flex; align-items: center; gap: 8px;
+  }
+  .sec-header h2 i { color: var(--blue); }
+  .sec-body { padding: 18px 20px; }
+
+  /* ── Tables ── */
+  .att-table { width: 100%; border-collapse: collapse; }
+  .att-table thead tr { border-bottom: 2px solid var(--border); background: var(--surface); }
+  .att-table thead th {
+    padding: 10px 14px; font-size: 0.72rem; font-weight: 700;
+    color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; text-align: left;
+  }
+  .att-table tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  .att-table tbody tr:last-child { border-bottom: none; }
+  .att-table tbody tr:hover { background: var(--blue-light); }
+  .att-table td { padding: 11px 14px; font-size: 0.82rem; color: var(--text-primary); vertical-align: middle; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 3px 9px; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 600; white-space: nowrap;
+  }
+  .badge-green  { background: var(--green-light);  color: var(--green); }
+  .badge-red    { background: var(--red-light);    color: var(--red); }
+  .badge-blue   { background: var(--blue-light);   color: var(--blue); }
+  .badge-gray   { background: #f1f5f9;             color: var(--text-secondary); }
+
+  /* ── Action buttons ── */
+  .btn-edit {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 6px;
+    border: 1.5px solid var(--border); background: var(--card-bg);
+    color: var(--text-secondary); font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+  }
+  .btn-edit:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+
+  /* ── Form grid ── */
+  .form-grid {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    align-items: end;
+  }
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .fld-label {
+    display: block; font-size: 0.72rem; font-weight: 700;
+    color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px;
+  }
+  .fld-input, .fld-select {
+    width: 100%; padding: 8px 10px;
+    border: 1.5px solid var(--border); border-radius: 7px;
+    font-size: 0.875rem; color: var(--text-primary);
+    background: var(--surface); outline: none; transition: border-color .15s;
+    box-sizing: border-box;
+  }
+  .fld-input:focus, .fld-select:focus {
+    border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-mid); background: #fff;
+  }
+  .fld-input[readonly] { background: #f1f5f9; color: var(--text-muted); cursor: not-allowed; }
+
+  .form-actions { display: flex; gap: 8px; align-items: center; }
+  .btn-submit {
+    padding: 8px 20px; background: var(--blue); color: #fff;
+    border: none; border-radius: 7px; font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; transition: background .15s;
+  }
+  .btn-submit:hover { background: #1d4ed8; }
+  .btn-submit.green { background: var(--green); }
+  .btn-submit.green:hover { background: #15803d; }
+  .btn-cancel {
+    padding: 8px 16px; background: transparent; color: var(--text-secondary);
+    border: 1.5px solid var(--border); border-radius: 7px;
+    font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all .15s;
+  }
+  .btn-cancel:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+
+  /* ── HR note cell ── */
+  .hr-note { font-size: 0.8rem; }
+  .hr-note .by { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── OT summary bar ── */
+  .ot-summary {
+    display: flex; gap: 24px; padding: 12px 20px;
+    border-bottom: 1px solid var(--border); background: var(--surface);
+    font-size: 0.82rem; flex-wrap: wrap;
+  }
+  .ot-summary span { color: var(--text-secondary); }
+  .ot-summary strong { color: var(--text-primary); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center; padding: 36px 16px;
+    color: var(--text-muted);
+  }
+  .empty-state i { font-size: 2rem; display: block; margin-bottom: 10px; }
+  .empty-state p { font-size: 0.875rem; margin: 0; }
+</style>
+
+<div class="att-page">
+
+  <!-- Header -->
+  <div class="att-header">
+    <div>
+      <h1><i class="fas fa-clipboard-list"></i> Attendance — {{ employee.get_full_name|default:employee.username }}</h1>
+      <p>Employee ID: {{ employee.employee_id }}</p>
+    </div>
+    <a href="{% url 'attendance:employee_attendance_log' %}" class="btn-back">
+      <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+  </div>
+
+  <!-- Summary strip -->
+  <div class="summary-strip">
+    <div class="summary-card green">
+      <div class="s-val">{{ present_days }}</div>
+      <div class="s-lbl">Present</div>
+    </div>
+    <div class="summary-card amber">
+      <div class="s-val">{{ leave_days }}</div>
+      <div class="s-lbl">Leave</div>
+    </div>
+    <div class="summary-card red">
+      <div class="s-val">{{ absent_days }}</div>
+      <div class="s-lbl">Absent</div>
+    </div>
+    <div class="summary-card blue">
+      <div class="s-val">{{ total_days }}</div>
+      <div class="s-lbl">Period Days</div>
+    </div>
+  </div>
+
+  <!-- Month / Year picker -->
+  <form id="monthPickerForm" method="get">
+    <div class="month-picker-card">
+      <span class="mp-label">Period</span>
+      <select id="month_select" name="month" class="mp-select">
+        {% for m_val, m_name in months %}
+          <option value="{{ m_val }}" {% if m_val == month %}selected{% endif %}>{{ m_name }}</option>
+        {% endfor %}
+      </select>
+      <select id="year_select" name="year" class="mp-select">
+        {% for y in years %}
+          <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-go">Go</button>
+    </div>
+  </form>
+
+  <!-- ── Biometric Logs ── -->
+  <div class="sec-card">
+    <div class="sec-header">
+      <h2><i class="fas fa-fingerprint"></i> Biometric Logs — {{ month }} / {{ year }}</h2>
+    </div>
+    {% if logs %}
+    <div class="table-scroll">
+      <table class="att-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Device / HR Note</th>
+            <th>Source Emp ID</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in logs %}
+          <tr>
+            <td>{{ l.punch_date|date:"M d, Y" }}</td>
+            <td>{{ l.punch_time }}</td>
+            <td>
+              {% if l.status == 'IN' %}
+                <span class="badge badge-green"><i class="fas fa-sign-in-alt"></i> IN</span>
+              {% elif l.status == 'OUT' %}
+                <span class="badge badge-red"><i class="fas fa-sign-out-alt"></i> OUT</span>
+              {% else %}
+                <span class="badge badge-gray">{{ l.status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if l.marked_by_hr and l.hr_reason %}
+                <div class="hr-note">
+                  <span class="badge badge-blue" style="margin-bottom:3px;"><i class="fas fa-user-shield"></i> HR</span>
+                  {{ l.hr_reason }}
+                  <div class="by">
+                    by {{ l.marked_by.get_full_name|default:l.marked_by.username }}
+                    {% if l.marked_at %} · {{ l.marked_at|date:"M d, Y H:i" }}{% endif %}
+                  </div>
+                </div>
+              {% else %}
+                {{ l.device_id }}
+                {% if l.device_serial_no %}<span style="color:var(--text-muted);font-size:.75rem;"> ({{ l.device_serial_no }})</span>{% endif %}
+              {% endif %}
+            </td>
+            <td>{{ l.employee_id }}</td>
+            <td>
+              {% if l.marked_by_hr %}
+                <button type="button" class="btn-edit hr-edit-log-btn"
+                        data-logid="{{ l.id }}"
+                        data-employeeid="{{ l.employee_id }}"
+                        data-punch-date="{{ l.punch_date|date:'Y-m-d' }}"
+                        data-punch-time="{{ l.punch_time }}"
+                        data-status="{{ l.status }}"
+                        data-hr-reason="{{ l.hr_reason|default:''|escapejs }}">
+                  <i class="fas fa-pen"></i> Edit
+                </button>
+              {% else %}
+                <span style="color:var(--text-muted);">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-fingerprint"></i>
+      <p>No biometric logs for this period.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── Overtime ── -->
+  <div class="sec-card">
+    <div class="sec-header">
+      <h2><i class="fas fa-clock"></i> Overtime</h2>
+    </div>
+    <div class="ot-summary">
+      <div><span>Total Hours</span> &nbsp;<strong>{{ overtime_total_hours }}</strong></div>
+      <div><span>Total Compensation</span> &nbsp;<strong>{{ overtime_total_compensation }}</strong></div>
+    </div>
+
+    {% if overtime %}
+    <div class="table-scroll">
+      <table class="att-table">
+        <thead>
+          <tr><th>Date</th><th>Hours</th><th>Compensation</th><th>Reason</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for ot in overtime %}
+          <tr>
+            <td>{{ ot.date|date:"M d, Y" }}</td>
+            <td>{{ ot.hours }}</td>
+            <td>{{ ot.compensation }}</td>
+            <td>{{ ot.reason }}</td>
+            <td>
+              <button type="button" class="btn-edit ot-edit-btn"
+                      data-otid="{{ ot.id }}"
+                      data-date="{{ ot.date|date:'Y-m-d' }}"
+                      data-hours="{{ ot.hours }}"
+                      data-comp="{{ ot.compensation }}"
+                      data-reason="{{ ot.reason|escapejs }}">
+                <i class="fas fa-pen"></i> Edit
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-clock"></i>
+      <p>No overtime recorded in this period.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── Add / Edit Overtime (HR) ── -->
+  <div class="sec-card">
+    <div class="sec-header">
+      <h2><i class="fas fa-plus-circle"></i> Add Overtime <span style="font-weight:400;color:var(--text-muted);font-size:.8rem;">(HR only)</span></h2>
+    </div>
+    <div class="sec-body">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="ot_id" id="ot_id_input" value="">
+        <div class="form-grid">
+          <div>
+            <label class="fld-label">Date</label>
+            <input type="date" name="overtime_date" class="fld-input" required>
+          </div>
+          <div>
+            <label class="fld-label">Hours</label>
+            <input type="number" step="0.25" min="0" name="overtime_hours" class="fld-input" required>
+          </div>
+          <div>
+            <label class="fld-label">Compensation <span style="font-weight:400;">(optional)</span></label>
+            <input type="number" step="0.01" min="0" name="compensation" class="fld-input">
+          </div>
+          <div class="full">
+            <label class="fld-label">Reason</label>
+            <input type="text" name="overtime_reason" class="fld-input" placeholder="Reason for overtime…">
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="ot_submit_btn" class="btn-submit green">
+              <i class="fas fa-plus"></i> Add Overtime
+            </button>
+            <button type="button" id="ot_cancel_btn" class="btn-cancel" style="display:none;">Cancel</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Add / Edit Manual Attendance (HR) ── -->
+  <div class="sec-card">
+    <div class="sec-header">
+      <h2><i class="fas fa-user-shield"></i> Manual Attendance <span style="font-weight:400;color:var(--text-muted);font-size:.8rem;">(HR only)</span></h2>
+    </div>
+    <div class="sec-body">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="_hr_add" value="1">
+        <input type="hidden" name="edit_log_id" id="edit_log_id" value="">
+        <div class="form-grid">
+          <div>
+            <label class="fld-label">Date</label>
+            <input type="date" name="punch_date" class="fld-input" required
+                   value="{% if edit_prefill %}{{ edit_prefill.punch_date }}{% endif %}">
+          </div>
+          <div>
+            <label class="fld-label">Time</label>
+            <input type="time" name="punch_time" class="fld-input" required
+                   value="{% if edit_prefill %}{{ edit_prefill.punch_time }}{% endif %}">
+          </div>
+          <div>
+            <label class="fld-label">Employee ID</label>
+            <input type="text" name="employee_id" id="employee_id_input" class="fld-input"
+                   value="{% if edit_prefill %}{{ edit_prefill.employee_id }}{% else %}{{ employee.employee_id }}{% endif %}" readonly>
+          </div>
+          <div>
+            <label class="fld-label">Status</label>
+            <select name="status" class="fld-select">
+              <option value="IN"  {% if edit_prefill and edit_prefill.status == 'IN' %}selected{% endif %}>IN</option>
+              <option value="OUT" {% if edit_prefill and edit_prefill.status == 'OUT' %}selected{% endif %}>OUT</option>
+            </select>
+          </div>
+          <div class="full">
+            <label class="fld-label">Reason</label>
+            <input type="text" name="hr_reason" class="fld-input" placeholder="Reason for manual entry…"
+                   value="{% if edit_prefill %}{{ edit_prefill.hr_reason }}{% endif %}">
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="hr_att_submit" class="btn-submit">
+              <i class="fas fa-save"></i> Add Attendance
+            </button>
+            <button type="button" id="hr_att_cancel" class="btn-cancel" style="display:none;">Cancel</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div><!-- /att-page -->
+
+{% block extra_js %}
+<script>
+(function () {
+  /* Auto-submit month/year picker */
+  var m = document.getElementById('month_select');
+  var y = document.getElementById('year_select');
+  var f = document.getElementById('monthPickerForm');
+  if (m && y && f) {
+    m.addEventListener('change', function () { f.submit(); });
+    y.addEventListener('change', function () { f.submit(); });
+  }
+})();
+
+(function () {
+  /* HR biometric log inline edit */
+  function qs(s) { return document.querySelector(s); }
+
+  var editIdInput   = qs('#edit_log_id');
+  var dateInput     = qs('input[name=punch_date]');
+  var timeInput     = qs('input[name=punch_time]');
+  var statusSelect  = qs('select[name=status]');
+  var reasonInput   = qs('input[name=hr_reason]');
+  var empIdInput    = qs('#employee_id_input');
+  var submitBtn     = qs('#hr_att_submit');
+  var cancelBtn     = qs('#hr_att_cancel');
+
+  document.querySelectorAll('.hr-edit-log-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var d = b.dataset;
+      if (editIdInput)  editIdInput.value  = d.logid || '';
+      if (empIdInput)   empIdInput.value   = d.employeeid || '{{ employee.employee_id }}';
+      if (dateInput)    dateInput.value    = d.punchDate || '';
+      if (timeInput)    timeInput.value    = d.punchTime || '';
+      if (statusSelect) statusSelect.value = d.status || 'IN';
+      if (reasonInput)  reasonInput.value  = d.hrReason || '';
+      if (submitBtn)    submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+      if (cancelBtn)    cancelBtn.style.display = 'inline-flex';
+      if (dateInput)    dateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+
+  cancelBtn && cancelBtn.addEventListener('click', function () {
+    if (editIdInput)  editIdInput.value  = '';
+    if (empIdInput)   empIdInput.value   = '{{ employee.employee_id }}';
+    if (dateInput)    dateInput.value    = '';
+    if (timeInput)    timeInput.value    = '';
+    if (statusSelect) statusSelect.value = 'IN';
+    if (reasonInput)  reasonInput.value  = '';
+    if (submitBtn)    submitBtn.innerHTML = '<i class="fas fa-save"></i> Add Attendance';
+    cancelBtn.style.display = 'none';
+  });
+})();
+
+(function () {
+  /* Overtime inline edit */
+  var otIdInput  = document.getElementById('ot_id_input');
+  var dateInput  = document.querySelector('input[name=overtime_date]');
+  var hoursInput = document.querySelector('input[name=overtime_hours]');
+  var compInput  = document.querySelector('input[name=compensation]');
+  var reasonInput = document.querySelector('input[name=overtime_reason]');
+  var submitBtn  = document.getElementById('ot_submit_btn');
+  var cancelBtn  = document.getElementById('ot_cancel_btn');
+
+  function clearOT() {
+    if (otIdInput)   otIdInput.value   = '';
+    if (dateInput)   dateInput.value   = '';
+    if (hoursInput)  hoursInput.value  = '';
+    if (compInput)   compInput.value   = '';
+    if (reasonInput) reasonInput.value = '';
+    if (submitBtn)   submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Overtime';
+    if (cancelBtn)   cancelBtn.style.display = 'none';
+  }
+
+  document.querySelectorAll('.ot-edit-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var d = b.dataset;
+      if (otIdInput)   otIdInput.value   = d.otid || '';
+      if (dateInput)   dateInput.value   = d.date || '';
+      if (hoursInput)  hoursInput.value  = d.hours || '';
+      if (compInput)   compInput.value   = d.comp || '';
+      if (reasonInput) reasonInput.value = d.reason || '';
+      if (submitBtn)   submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+      if (cancelBtn)   cancelBtn.style.display = 'inline-flex';
+      if (dateInput)   dateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+
+  cancelBtn && cancelBtn.addEventListener('click', clearOT);
+})();
+</script>
+{% endblock %}
+
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+
 {% block title %}Employee Attendance Detail{% endblock %}
 
 {% block content %}
@@ -291,4 +849,4 @@
     })();
   </script>
 
-{% endblock %}
+{% endblock %} {% endcomment %}

@@ -4,6 +4,339 @@
 {% block title %}Pending Attendance Requests{% endblock %}
 
 {% block content %}
+
+<div class="container-fluid px-3 px-lg-4 py-4">
+
+    <!-- Header -->
+
+    <div class="page-header mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-user-clock text-warning me-2"></i>
+                Pending Attendance Requests
+            </h2>
+
+            <p class="text-muted mb-0">
+                Review and approve employee attendance correction requests.
+            </p>
+        </div>
+
+        <a href="{% url 'attendance:user_attendance_dashboard' %}"
+           class="btn btn-outline-secondary">
+
+            <i class="fas fa-arrow-left me-2"></i>
+            Back to Dashboard
+
+        </a>
+
+    </div>
+
+    <!-- Summary -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+
+            <div class="summary-card">
+
+                <div class="summary-icon bg-warning-subtle">
+                    <i class="fas fa-hourglass-half text-warning"></i>
+                </div>
+
+                <div>
+                    <h3>{{ requests|length }}</h3>
+                    <p>Pending Requests</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Messages -->
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0">
+
+                {{ message }}
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Requests Table -->
+
+    <div class="card request-card">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+            <h5 class="mb-0">
+
+                <i class="fas fa-list-check me-2"></i>
+
+                Attendance Requests Queue
+
+            </h5>
+
+            <span class="badge bg-warning text-dark">
+                {{ requests|length }} Pending
+            </span>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            {% if requests %}
+
+            <div class="table-responsive">
+
+                <table class="table request-table mb-0">
+
+                    <thead>
+
+                        <tr>
+                            <th>Employee</th>
+                            <th>Date</th>
+                            <th>Reason</th>
+                            <th>Punch Time</th>
+                            <th>Submitted</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for req in requests %}
+
+                        <tr>
+
+                            <td>
+
+                                <div class="fw-semibold">
+
+                                    {{ req.user.first_name }}
+                                    {{ req.user.last_name }}
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    {{ req.user.employee_id }}
+
+                                </small>
+
+                            </td>
+
+                            <td>
+
+                                <strong>
+
+                                    {{ req.request_date|date:"d M Y" }}
+
+                                </strong>
+
+                            </td>
+
+                            <td class="reason-column">
+
+                                {{ req.reason }}
+
+                            </td>
+
+                            <td>
+
+                                {% if req.punch_time %}
+
+                                    {{ req.punch_time|time:"H:i" }}
+
+                                {% else %}
+
+                                    -
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                <small class="text-muted">
+
+                                    {{ req.submitted_at|date:"d M Y H:i" }}
+
+                                </small>
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <a href="{% url 'attendance:review_attendance_request' req.id %}"
+                                   class="btn btn-primary btn-sm">
+
+                                    <i class="fas fa-eye me-1"></i>
+
+                                    Review
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+            <div class="empty-state">
+
+                <i class="fas fa-check-circle"></i>
+
+                <h4>All Requests Reviewed</h4>
+
+                <p class="text-muted">
+                    There are currently no attendance requests waiting for approval.
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.summary-card{
+    background:#fff;
+    border-radius:18px;
+    padding:22px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    box-shadow:0 8px 25px rgba(0,0,0,.06);
+}
+
+.summary-icon{
+    width:60px;
+    height:60px;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.4rem;
+}
+
+.summary-card h3{
+    margin:0;
+    font-weight:700;
+}
+
+.summary-card p{
+    margin:0;
+    color:#64748b;
+}
+
+.request-card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 8px 25px rgba(0,0,0,.06);
+}
+
+.request-card .card-header{
+    background:#fff;
+    border-bottom:1px solid #eef2f7;
+    padding:18px 24px;
+}
+
+.request-table thead{
+    background:#f8fafc;
+}
+
+.request-table th{
+    font-weight:600;
+    color:#475569;
+    white-space:nowrap;
+}
+
+.request-table td{
+    vertical-align:middle;
+}
+
+.reason-column{
+    min-width:250px;
+    max-width:400px;
+    white-space:normal;
+    word-break:break-word;
+}
+
+.empty-state{
+    text-align:center;
+    padding:70px 20px;
+}
+
+.empty-state i{
+    font-size:4rem;
+    color:#22c55e;
+    margin-bottom:20px;
+}
+
+.empty-state h4{
+    margin-bottom:10px;
+}
+
+@media (max-width:768px){
+
+    .request-table th,
+    .request-table td{
+        font-size:.9rem;
+    }
+
+    .summary-card{
+        padding:18px;
+    }
+
+    .reason-column{
+        min-width:200px;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pending Attendance Requests{% endblock %}
+
+{% block content %}
 <div class="container my-5">
     <div class="row">
         <div class="col-md-12">
@@ -78,4 +411,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}

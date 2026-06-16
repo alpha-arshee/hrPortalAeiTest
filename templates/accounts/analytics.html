@@ -1,5 +1,373 @@
 {% extends 'base.html' %}
 
+{% block title %}Analytics - AEI HR System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* KPI cards */
+    .kpi-card {
+        border-left: 4px solid #0d6efd;
+        transition: transform 0.15s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); }
+    .kpi-card .kpi-icon { font-size: 1.75rem; }
+
+    /* Chart containers — responsive height */
+    .chart-container {
+        position: relative;
+        width: 100%;
+    }
+    .chart-container-sm { height: 220px; }
+    .chart-container-md { height: 260px; }
+
+    /* Recent activity avatar */
+    .activity-avatar {
+        width: 32px;
+        height: 32px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    /* Truncate user-agent on mobile */
+    .ua-cell {
+        max-width: 160px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @media (max-width: 767.98px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+        }
+
+        /* KPI labels smaller on mobile */
+        .kpi-label { font-size: 0.75rem; }
+
+        /* Chart labels summary wraps nicely */
+        .chart-legend span { display: inline-block; margin: 2px 6px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 py-md-4">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center page-header mb-4">
+        <h4 class="mb-0">
+            <i class="fas fa-chart-line text-primary me-2"></i>Analytics & Reports
+        </h4>
+        <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+        </a>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 border-0 shadow-sm kpi-card border-primary">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="mb-0 fw-bold">{{ total_employees|default:0 }}</h5>
+                            <small class="text-muted kpi-label">Total Employees</small>
+                        </div>
+                        <i class="fas fa-users text-primary kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 border-0 shadow-sm kpi-card border-success">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="mb-0 fw-bold">{{ active_employees|default:0 }}</h5>
+                            <small class="text-muted kpi-label">Active</small>
+                        </div>
+                        <i class="fas fa-user-check text-success kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 border-0 shadow-sm kpi-card border-info">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="mb-0 fw-bold">{{ new_joinees_month|default:0 }}</h5>
+                            <small class="text-muted kpi-label">New This Month</small>
+                        </div>
+                        <i class="fas fa-user-plus text-info kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 border-0 shadow-sm kpi-card border-danger">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="mb-0 fw-bold">{{ attrition_rate|default:"0.0" }}%</h5>
+                            <small class="text-muted kpi-label">Attrition Rate</small>
+                        </div>
+                        <i class="fas fa-chart-line text-danger kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card h-100 border-0 shadow-sm kpi-card border-secondary">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h5 class="mb-0 fw-bold">{{ avg_employee_age|default:"N/A" }}</h5>
+                            <small class="text-muted kpi-label">Avg Age</small>
+                        </div>
+                        <i class="fas fa-birthday-cake text-secondary kpi-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-3 mb-4">
+        <!-- Gender Ratio -->
+        <div class="col-12 col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-venus-mars me-2 text-info"></i>Gender Ratio</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container chart-container-sm">
+                        <canvas id="genderRatioChart"></canvas>
+                    </div>
+                    <div class="mt-2 text-center small chart-legend">
+                        <span><strong>Male:</strong> {{ male_count|default:0 }}</span>
+                        <span><strong>Female:</strong> {{ female_count|default:0 }}</span>
+                        <span><strong>Other:</strong> {{ other_count|default:0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- By Grade -->
+        <div class="col-12 col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-layer-group me-2 text-primary"></i>Employees by Grade</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container chart-container-sm">
+                        <canvas id="employeesByGradeChart"></canvas>
+                    </div>
+                    <div class="mt-2 text-center small chart-legend">
+                        {% if grade_items %}
+                            {% for item in grade_items %}
+                                <span><strong>{{ item.0 }}:</strong> {{ item.1 }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">No grade data</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- By Department -->
+        <div class="col-12 col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-building me-2 text-secondary"></i>Employees by Department</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container chart-container-sm">
+                        <canvas id="employeesByDepartmentChart"></canvas>
+                    </div>
+                    <div class="mt-2 text-center small chart-legend">
+                        {% if dept_items %}
+                            {% for item in dept_items %}
+                                <span><strong>{{ item.0 }}:</strong> {{ item.1 }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">No department data</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Registrations -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-user-plus text-success me-2"></i>Recent Registrations (Last 30 days)</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_registrations %}
+                    <div class="list-group list-group-flush">
+                        {% for employee in recent_registrations %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-3 py-2">
+                            <div class="d-flex align-items-center gap-2">
+                                {% if employee.profile_picture %}
+                                    <img src="{{ employee.profile_picture.url }}"
+                                         class="activity-avatar"
+                                         alt="Profile"
+                                         onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline';">
+                                    <i class="fas fa-user-circle text-muted fa-lg" style="display:none;"></i>
+                                {% else %}
+                                    <i class="fas fa-user-circle text-muted fa-lg"></i>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-semibold small">{{ employee.get_full_name }}</div>
+                                    <small class="text-muted">{{ employee.department|default:"No department" }}</small>
+                                </div>
+                            </div>
+                            <small class="text-muted text-nowrap">{{ employee.created_at|date:"M d" }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-user-plus fa-2x mb-2"></i>
+                        <p class="mb-0 small">No recent registrations</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Login Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-sign-in-alt text-warning me-2"></i>Recent Login Activity (Last 30 days)</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_logins %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Username</th>
+                                    <th class="d-none d-md-table-cell">IP Address</th>
+                                    <th>Date/Time</th>
+                                    <th>Status</th>
+                                    <th class="d-none d-lg-table-cell">User Agent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for login in recent_logins %}
+                                <tr>
+                                    <td class="small">{{ login.username }}</td>
+                                    <td class="small d-none d-md-table-cell">{{ login.ip_address }}</td>
+                                    <td class="small text-nowrap">{{ login.timestamp|date:"M d, H:i" }}</td>
+                                    <td>
+                                        {% if login.success %}
+                                            <span class="badge bg-success">✓</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">✗</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small d-none d-lg-table-cell ua-cell">{{ login.user_agent|truncatechars:50 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-sign-in-alt fa-2x mb-2"></i>
+                        <p class="mb-0 small">No recent login activity</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ── Gender Ratio Pie ──
+    try {
+        new Chart(document.getElementById('genderRatioChart'), {
+            type: 'pie',
+            data: {
+                labels: ['Male', 'Female', 'Other'],
+                datasets: [{
+                    data: [{{ male_count|default:0 }}, {{ female_count|default:0 }}, {{ other_count|default:0 }}],
+                    backgroundColor: ['#4e73df', '#e74a3b', '#f6c23e'],
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+            }
+        });
+    } catch (e) { console.error('Gender chart error', e); }
+
+    // ── Employees by Grade Bar ──
+    try {
+        const gradeLabels = [{% for l in grade_labels %}'{{ l }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+        const gradeData   = [{% for v in grade_values %}{{ v }}{% if not forloop.last %},{% endif %}{% endfor %}];
+        new Chart(document.getElementById('employeesByGradeChart'), {
+            type: 'bar',
+            data: {
+                labels: gradeLabels,
+                datasets: [{ label: 'Employees', data: gradeData, backgroundColor: '#4e73df', borderRadius: 4 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } } },
+                          x: { ticks: { font: { size: 11 } } } }
+            }
+        });
+    } catch (e) { console.error('Grade chart error', e); }
+
+    // ── Employees by Department Bar ──
+    try {
+        const deptLabels = [{% for l in dept_labels %}'{{ l }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+        const deptData   = [{% for v in dept_values %}{{ v }}{% if not forloop.last %},{% endif %}{% endfor %}];
+        new Chart(document.getElementById('employeesByDepartmentChart'), {
+            type: 'bar',
+            data: {
+                labels: deptLabels,
+                datasets: [{ label: 'Employees', data: deptData, backgroundColor: '#2e59d9', borderRadius: 4 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } } },
+                          x: { ticks: { font: { size: 11 }, maxRotation: 30 } } }
+            }
+        });
+    } catch (e) { console.error('Department chart error', e); }
+
+});
+</script>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+
 {% block title %}Analytics - Authentication System{% endblock %}
 
 {% block content %}
@@ -356,4 +724,4 @@
         })();
     </script>
 
-{% endblock %}
+{% endblock %} {% endcomment %}

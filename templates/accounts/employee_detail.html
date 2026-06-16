@@ -1,5 +1,473 @@
 {% extends 'base.html' %}
 
+{% block title %}{{ employee.get_full_name }} - AEI HR System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .profile-header-info h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 4px;
+    }
+
+    .profile-header-info p {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        gap: 6px;
+    }
+
+    .badge-primary { background: #dbeafe; color: #0c4a6e; }
+    .badge-success { background: #ecfdf5; color: #065f46; }
+    .badge-secondary { background: #f3f4f6; color: #4b5563; }
+    .badge-danger { background: #fef2f2; color: #7f1d1d; }
+
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+
+    .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+    .card-header {
+        background: transparent;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 12px 16px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: space-between;
+    }
+
+    .card-header i { color: #2563eb; font-size: 0.95rem; }
+
+    .card-body {
+        padding: 14px;
+    }
+
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    .info-table tbody tr {
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .info-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .info-table th {
+        padding: 8px 10px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #6b7280;
+        width: 40%;
+    }
+
+    .info-table td {
+        padding: 8px 10px;
+        text-align: left;
+        font-size: 0.9rem;
+        color: #1f2937;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .btn {
+        padding: 7px 14px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .btn-primary:hover { background: #1e40af; }
+
+    .btn-danger {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    .btn-danger:hover { background: #dc2626; }
+
+    .skills-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .skill-tag {
+        background: #dbeafe;
+        color: #0284c7;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        border: 1px solid #bae6fd;
+    }
+
+    .section-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .data-table thead {
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .data-table th {
+        padding: 10px 12px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .data-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #1f2937;
+    }
+
+    .data-table tr:hover td { background: #f9fafb; }
+
+    .empty-state {
+        text-align: center;
+        padding: 20px;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .action-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+        .action-buttons .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .grid-3 {
+            grid-template-columns: 1fr;
+        }
+        .info-table th, .info-table td {
+            padding: 6px 8px;
+            font-size: 0.85rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 20px 16px;">
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-header-info">
+            <h2>{{ employee.get_full_name }}</h2>
+            <p>{{ employee.email }}{% if employee.company_email %} • {{ employee.company_email }}{% endif %}</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="badge badge-primary">{{ employee.get_role_display }}</span>
+            {% if employee.is_active %}
+            <span class="badge badge-success">Active</span>
+            {% else %}
+            <span class="badge badge-secondary">Inactive</span>
+            {% endif %}
+        </div>
+        <div class="action-buttons" style="margin-left:auto;">
+            <a href="{% url 'accounts:edit_employee_detail' employee.id %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i>Edit
+            </a>
+            {% if user.is_hr_admin %}
+            <form method="post" action="{% url 'accounts:delete_employee' employee.id %}" style="display:inline;" onsubmit="return confirm('Delete this employee? This cannot be undone.');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i>Delete
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Personal & Employment -->
+    <div class="grid-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user"></i> Personal & Employment
+            </div>
+            <div class="card-body">
+                <table class="info-table">
+                    <tbody>
+                        <tr><th>Username</th><td>{{ employee.username }}</td></tr>
+                        <tr><th>Employee ID</th><td>{{ employee.employee_id|default:"—" }}</td></tr>
+                        <tr><th>Emp Code</th><td>{{ employee.emp_code|default:"—" }}</td></tr>
+                        <tr><th>Grade</th><td>{{ employee.grade|default:"—" }}</td></tr>
+                        <tr><th>Designation</th><td>{{ employee.designation|default:"—" }}</td></tr>
+                        <tr><th>Department</th><td>{{ employee.department|default:"—" }}</td></tr>
+                        <tr><th>Project</th><td>{{ employee.project_name|default:"—" }}</td></tr>
+                        <tr><th>Date of Birth</th><td>{% if profile and profile.dob %}{{ profile.dob|date:"M d, Y" }}{% else %}—{% endif %}</td></tr>
+                        <tr><th>Date of Joining</th><td>{% if employee.date_of_joining %}{{ employee.date_of_joining|date:"M d, Y" }}{% else %}—{% endif %}</td></tr>
+                        <tr><th>Aadhar No</th><td>{% if employee.addhar_id %}{{ employee.addhar_id }}{% elif employee.aadhar_id %}{{ employee.aadhar_id }}{% else %}—{% endif %}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-phone"></i> Contact Information
+            </div>
+            <div class="card-body">
+                <table class="info-table">
+                    <tbody>
+                        <tr><th>Email</th><td style="word-break:break-word;">{{ employee.email }}</td></tr>
+                        <tr><th>Company Email</th><td style="word-break:break-word;">{{ employee.company_email|default:"—" }}</td></tr>
+                        <tr><th>Phone</th><td>{{ employee.phone_number|default:"—" }}</td></tr>
+                        <tr><th>Emergency Contact</th><td>{{ profile.emergency_contact|default:"—" }}</td></tr>
+                        <tr><th colspan="2" style="padding-top:12px;border-bottom:none;">
+                            <div class="section-title">Addresses</div>
+                        </th></tr>
+                        <tr><th>Current</th><td>{{ profile.current_address|default:"—" }}</td></tr>
+                        <tr><th>Permanent</th><td>{{ profile.permanent_address|default:"—" }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Leave Quota -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-calendar-alt"></i> Leave Quota
+            </div>
+            <div class="card-body">
+                {% if leave_quota %}
+                <table class="info-table">
+                    <tbody>
+                        <tr><th>Paid Leave</th><td style="font-size:1.2rem;font-weight:700;color:#2563eb;">{{ leave_quota.total_paid_leaves }}</td></tr>
+                        <tr><th>Unpaid Leave</th><td style="font-size:1.2rem;font-weight:700;color:#6b7280;">{{ leave_quota.total_unpaid_leaves }}</td></tr>
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">No leave quota data</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Skills Section (Full Width) -->
+    <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+            <i class="fas fa-star"></i> Professional Skills
+        </div>
+        <div class="card-body">
+            {% if profile and profile.skills %}
+            <div class="skills-wrap">
+                {% for skill in profile.skills %}
+                <div class="skill-tag">{{ skill }}</div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">No skills listed</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tax, Banking & Payroll -->
+    <div class="grid-3">
+        <!-- Tax Information -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-file-invoice-dollar"></i> Tax Information
+            </div>
+            <div class="card-body">
+                {% if tax_info %}
+                <table class="info-table">
+                    <tbody>
+                        <tr><th>PAN</th><td>{{ tax_info.pan_number|default:"—" }}</td></tr>
+                        <tr><th>PF Account</th><td>{{ tax_info.pf_number|default:"—" }}</td></tr>
+                        <tr><th>UAN</th><td>{{ tax_info.uan_number|default:"—" }}</td></tr>
+                        <tr><th>ESI No</th><td>{{ tax_info.esi_number|default:"—" }}</td></tr>
+                        <tr><th>Tax Slab</th><td>{{ tax_info.tax_slab|default:"0.0" }}%</td></tr>
+                        <tr><th>Health Insurance</th><td>{{ tax_info.health_insurance_provider|default:"—" }}</td></tr>
+                        <tr><th>Insurance No</th><td>{{ tax_info.health_insurance_number|default:"—" }}</td></tr>
+                        <tr><th>Other Benefits</th><td>{{ tax_info.other_benefits|default:"—" }}</td></tr>
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">No tax information</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Banking Information -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-university"></i> Banking Information
+            </div>
+            <div class="card-body">
+                {% if banking_info %}
+                <table class="info-table">
+                    <tbody>
+                        <tr><th>Bank Name</th><td>{{ banking_info.bank_name|default:"—" }}</td></tr>
+                        <tr><th>Account No</th><td>{{ banking_info.account_number|default:"—" }}</td></tr>
+                        <tr><th>IFSC Code</th><td>{{ banking_info.ifsc_code|default:"—" }}</td></tr>
+                        <tr><th>Branch</th><td>{{ banking_info.branch|default:"—" }}</td></tr>
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">No banking information</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Payroll Information -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-wallet"></i> Payroll Information
+            </div>
+            <div class="card-body">
+                {% if payroll %}
+                <table class="info-table">
+                    <tbody>
+                        <tr><th>CTC</th><td style="font-size:1.1rem;font-weight:700;color:#2563eb;">{% if profile and profile.ctc %}₹{{ profile.ctc }}{% else %}—{% endif %}</td></tr>
+                        <tr><th>Basic Salary</th><td>₹{{ payroll.basic_salary|default:"—" }}</td></tr>
+                        <tr><th>HRA</th><td>₹{{ payroll.hra|default:"—" }}</td></tr>
+                        <tr><th>Pay Day</th><td>{{ payroll.pay_day|default:"—" }}</td></tr>
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">No payroll information</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Login History -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-history"></i> Recent Login History
+        </div>
+        <div class="card-body" style="padding:0;">
+            {% if login_history %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>IP Address</th>
+                            <th>Status</th>
+                            <th>User Agent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for login in login_history %}
+                        <tr>
+                            <td>{{ login.timestamp|date:"M d, Y H:i" }}</td>
+                            <td>{{ login.ip_address }}</td>
+                            <td>
+                                {% if login.success %}
+                                <span class="badge badge-success" style="background:#ecfdf5;color:#065f46;">Success</span>
+                                {% else %}
+                                <span class="badge badge-danger" style="background:#fef2f2;color:#7f1d1d;">Failed</span>
+                                {% endif %}
+                            </td>
+                            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ login.user_agent|truncatechars:80 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">No login history recorded</div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+
 {% block title %}Employee Profile — {{ employee.get_full_name }}{% endblock %}
 
 {% block content %}
@@ -227,4 +695,4 @@
 
 </div>
 
-{% endblock %}
+{% endblock %} {% endcomment %}

@@ -1,6 +1,314 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags static %}
 
+{% block title %}Edit Employee Details - AEI HR System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Section cards */
+    .section-card {
+        border-left: 4px solid #0d6efd;
+        margin-bottom: 1.25rem;
+    }
+
+    .section-card .card-header {
+        background-color: #f8f9fa;
+        padding: 0.65rem 1rem;
+    }
+
+    /* Stack all col-md columns on mobile */
+    @media (max-width: 767.98px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+        }
+
+        .page-header h4 {
+            margin-bottom: 0;
+        }
+
+        /* Submit button full width on mobile */
+        .form-actions {
+            justify-content: stretch !important;
+        }
+
+        .form-actions .btn {
+            width: 100%;
+        }
+
+        /* Tighter card padding on mobile */
+        .section-card .card-body {
+            padding: 0.85rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 py-md-4">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center page-header mb-4">
+        <a href="{% url 'accounts:employee_management' %}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Back to List
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0 fs-6"><i class="fas fa-id-card me-2"></i>Edit Employee Information</h4>
+                </div>
+                <div class="card-body p-3 p-md-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <!-- 1. Basic Personal Information -->
+                        <div class="card section-card">
+                            <div class="card-header">
+                                <strong><i class="fas fa-user me-2 text-primary"></i>Basic Personal Information</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-4">{{ form.first_name|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">{{ form.middle_name|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">{{ form.last_name|as_crispy_field }}</div>
+                                </div>
+                                <div class="row g-3 mt-0">
+                                    <div class="col-12 col-md-4">{{ form.dob|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">{{ form.gender|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">
+                                        {% if 'addhar_id' in form.fields %}
+                                            {{ form.addhar_id|as_crispy_field }}
+                                        {% elif 'aadhar_id' in form.fields %}
+                                            {{ form.aadhar_id|as_crispy_field }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-0">
+                                    <div class="col-12">{{ form.skills|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Contact Information -->
+                        <div class="card section-card">
+                            <div class="card-header">
+                                <strong><i class="fas fa-address-book me-2 text-primary"></i>Contact Information</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-4">{{ form.phone_number|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">{{ form.email|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">{{ form.company_email|as_crispy_field }}</div>
+                                </div>
+                                <div class="row g-3 mt-0">
+                                    <div class="col-12 col-md-6">{{ form.current_address|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-6">{{ form.permanent_address|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Emergency Details -->
+                        <div class="card section-card">
+                            <div class="card-header">
+                                <strong><i class="fas fa-phone-alt me-2 text-danger"></i>Emergency Details</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">{{ form.emergency_contact|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Employment & Job Details -->
+                        <div class="card section-card">
+                            <div class="card-header">
+                                <strong><i class="fas fa-briefcase me-2 text-primary"></i>Employment & Job Details</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-3">{{ form.employee_id|as_crispy_field }}</div>
+                                    <div class="col-6 col-md-3">{{ form.emp_code|as_crispy_field }}</div>
+                                    <div class="col-6 col-md-3">{{ form.role|as_crispy_field }}</div>
+                                    <div class="col-6 col-md-3">{{ form.designation|as_crispy_field }}</div>
+                                </div>
+                                <div class="row g-3 mt-0">
+                                    <div class="col-12 col-md-4">{{ form.department|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">{{ form.project_name|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">{{ form.grade|as_crispy_field }}</div>
+                                </div>
+                                <div class="row g-3 mt-0">
+                                    <div class="col-12 col-md-4">{{ form.date_of_joining|as_crispy_field }}</div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="form-check mt-4 pt-2">
+                                            {{ form.is_active }}
+                                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                                Account Active
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="form-check mt-4 pt-2">
+                                            {{ form.is_approved }}
+                                            <label class="form-check-label" for="{{ form.is_approved.id_for_label }}">
+                                                Account Approved
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Payroll & Compensation -->
+                        <div class="card section-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <strong><i class="fas fa-wallet me-2 text-success"></i>Payroll & Compensation</strong>
+                                <button class="btn btn-sm btn-outline-secondary" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#payrollCollapse"
+                                    aria-expanded="true" aria-controls="payrollCollapse">
+                                    <i class="fas fa-chevron-up" id="payrollChevron"></i>
+                                </button>
+                            </div>
+                            <div id="payrollCollapse" class="collapse show">
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-4">{{ form.ctc|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-4">{{ form.pay_day|as_crispy_field }}</div>
+                                    </div>
+                                    <hr>
+                                    <h6 class="text-muted mb-3">Salary Breakdown</h6>
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-6">{{ form.basic_salary|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-6">{{ form.hra|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-6">{{ form.special_allowances|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-6">{{ form.conveyance_allowances|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-6">{{ form.fooding_allowance|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-6">{{ form.medical_allowance|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-6">{{ form.education_allowance|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-6">{{ form.transport_allowance|as_crispy_field }}</div>
+                                    </div>
+                                    <hr>
+                                    <h6 class="text-muted mb-3">Statutory Deductions</h6>
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-6">{{ form.epf_contribution|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-6">{{ form.esi_contribution|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-6">{{ form.professional_tax|as_crispy_field }}</div>
+                                        <div class="col-12 col-md-6">{{ form.tds|as_crispy_field }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Tax & Statutory Information -->
+                        <div class="card section-card">
+                            <div class="card-header">
+                                <strong><i class="fas fa-file-invoice me-2 text-warning"></i>Tax & Statutory Information</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-4">{{ form.pan_number|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">{{ form.pf_number|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">{{ form.uan|as_crispy_field }}</div>
+                                </div>
+                                <div class="row g-3 mt-0">
+                                    <div class="col-12 col-md-4">{{ form.esi_number|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-4">{{ form.tax_slab|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 7. Insurance & Benefits -->
+                        <div class="card section-card">
+                            <div class="card-header">
+                                <strong><i class="fas fa-shield-alt me-2 text-info"></i>Insurance & Benefits</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">{{ form.health_insurance_provider|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-6">{{ form.health_insurance_number|as_crispy_field }}</div>
+                                </div>
+                                <div class="row g-3 mt-0">
+                                    <div class="col-12">{{ form.other_benefits|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 8. Banking Information -->
+                        <div class="card section-card">
+                            <div class="card-header">
+                                <strong><i class="fas fa-university me-2 text-primary"></i>Banking Information</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">{{ form.bank_name|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-6">{{ form.account_number|as_crispy_field }}</div>
+                                </div>
+                                <div class="row g-3 mt-0">
+                                    <div class="col-12 col-md-6">{{ form.ifsc_code|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-6">{{ form.branch|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 9. Leave Quota -->
+                        <div class="card section-card">
+                            <div class="card-header">
+                                <strong><i class="fas fa-calendar-alt me-2 text-secondary"></i>Leave Quota (Current Year)</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">{{ form.total_paid_leaves|as_crispy_field }}</div>
+                                    <div class="col-12 col-md-6">{{ form.total_unpaid_leaves|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-flex gap-5 form-actions justify-content-md-end mt-3">
+                            <a href="{% url 'accounts:employee_management' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Flip chevron icon when payroll section collapses/expands
+    document.addEventListener('DOMContentLoaded', function () {
+        const payrollCollapse = document.getElementById('payrollCollapse');
+        const chevron = document.getElementById('payrollChevron');
+        if (payrollCollapse && chevron) {
+            payrollCollapse.addEventListener('show.bs.collapse', function () {
+                chevron.classList.replace('fa-chevron-down', 'fa-chevron-up');
+            });
+            payrollCollapse.addEventListener('hide.bs.collapse', function () {
+                chevron.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% load crispy_forms_tags static %}
+
 {% block title %}Edit Employee Details - Authentication System{% endblock %}
 
 {% block content %}
@@ -216,4 +524,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}

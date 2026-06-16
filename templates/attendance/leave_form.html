@@ -5,6 +5,504 @@
 {% block title %}Leave Request{% endblock %}
 
 {% block content %}
+
+<div class="container-fluid px-3 px-lg-4 py-4">
+
+    <!-- Header -->
+
+    <div class="page-header mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-calendar-minus text-primary me-2"></i>
+                Leave Management
+            </h2>
+
+            <p class="text-muted mb-0">
+                Apply for leave and track your leave request history.
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Leave Balance Cards -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6">
+
+            <div class="balance-card paid-card">
+
+                <div class="balance-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+
+                <div>
+                    <h3>{{ left_paid_leaves }}</h3>
+                    <p>Paid Leaves Remaining</p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-6">
+
+            <div class="balance-card unpaid-card">
+
+                <div class="balance-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+
+                <div>
+                    <h3>{{ left_unpaid_leaves }}</h3>
+                    <p>Unpaid Leaves Remaining</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Messages -->
+
+    {% if messages %}
+        {% for msg in messages %}
+            <div class="alert alert-{{ msg.tags }} border-0 shadow-sm">
+                {{ msg }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Leave Application Form -->
+
+    <div class="card leave-card mb-4">
+
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-paper-plane me-2"></i>
+                Submit Leave Request
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <form method="post" enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            {{ form.start_date.label }}
+                        </label>
+
+                        {{ form.start_date }}
+
+                        {% if form.start_date.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.start_date.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            {{ form.end_date.label }}
+                        </label>
+
+                        {{ form.end_date }}
+
+                        {% if form.end_date.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.end_date.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            {{ form.leave_type.label }}
+                        </label>
+
+                        {{ form.leave_type }}
+
+                        {% if form.leave_type.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.leave_type.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            {{ form.contact_during_leave.label }}
+                        </label>
+
+                        {{ form.contact_during_leave }}
+
+                        {% if form.contact_during_leave.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.contact_during_leave.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="col-12">
+
+                        <label class="form-label fw-semibold">
+                            {{ form.reason.label }}
+                        </label>
+
+                        {{ form.reason }}
+
+                        {% if form.reason.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.reason.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="col-12">
+
+                        <label class="form-label fw-semibold">
+                            {{ form.supporting_document.label }}
+                        </label>
+
+                        {{ form.supporting_document }}
+
+                        {% if form.supporting_document.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.supporting_document.errors }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                <div class="mt-4">
+
+                    <button class="btn btn-primary px-4">
+
+                        <i class="fas fa-paper-plane me-2"></i>
+                        Submit Leave Request
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Leave History -->
+
+    <div class="card leave-card">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+            <h5 class="mb-0">
+                <i class="fas fa-history me-2"></i>
+                Leave Request History
+            </h5>
+
+            <span class="badge bg-primary">
+                {{ my_leaves|length }} Requests
+            </span>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            {% if my_leaves and my_leaves|length > 0 %}
+
+            <div class="table-responsive">
+
+                <table class="table leave-table mb-0">
+
+                    <thead>
+
+                        <tr>
+                            <th>#</th>
+                            <th>Period</th>
+                            <th>Days</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Submitted</th>
+                            <th>Status</th>
+                            <th>Decision Date</th>
+                            <th>Decision By</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for entry in my_leaves %}
+                        {% with lv=entry.leave %}
+
+                        <tr>
+
+                            <td>{{ forloop.counter }}</td>
+
+                            <td>
+                                {{ lv.start_date|date:"M d, Y" }}
+                                <br>
+                                <small class="text-muted">to</small>
+                                <br>
+                                {{ lv.end_date|date:"M d, Y" }}
+                            </td>
+
+                            <td>
+                                {% if entry.days != None %}
+                                    {{ entry.days }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-info">
+                                    {{ lv.leave_type|capfirst }}
+                                </span>
+
+                            </td>
+
+                            <td class="reason-cell">
+                                {{ lv.reason|default:'-' }}
+                            </td>
+
+                            <td>
+                                {{ lv.start_date|date:"M d, Y" }}
+                            </td>
+
+                            <td>
+
+                                {% if lv.status == 'approved' %}
+                                    <span class="badge bg-success">
+                                        Approved
+                                    </span>
+
+                                {% elif lv.status == 'rejected' %}
+                                    <span class="badge bg-danger">
+                                        Rejected
+                                    </span>
+
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">
+                                        Pending
+                                    </span>
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if lv.decision_date %}
+                                    {{ lv.decision_date|date:"M d, Y" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if lv.decision_by %}
+
+                                    {{ lv.decision_by.get_full_name|default:lv.decision_by.username }}
+
+                                    <br>
+
+                                    <small class="text-muted">
+                                        {{ lv.decision_by.employee_id }}
+                                    </small>
+
+                                {% else %}
+                                    -
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endwith %}
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+            <div class="empty-state">
+
+                <i class="fas fa-calendar-times"></i>
+
+                <h5>No Leave Requests</h5>
+
+                <p>
+                    You have not submitted any leave requests yet.
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+.balance-card{
+    background:#fff;
+    border-radius:18px;
+    padding:24px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    box-shadow:0 8px 25px rgba(0,0,0,.06);
+}
+
+.balance-icon{
+    width:60px;
+    height:60px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.4rem;
+}
+
+.paid-card .balance-icon{
+    background:#dcfce7;
+    color:#16a34a;
+}
+
+.unpaid-card .balance-icon{
+    background:#fef3c7;
+    color:#d97706;
+}
+
+.balance-card h3{
+    margin:0;
+    font-weight:700;
+}
+
+.balance-card p{
+    margin:0;
+    color:#64748b;
+}
+
+.leave-card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 8px 25px rgba(0,0,0,.06);
+}
+
+.leave-card .card-header{
+    background:#fff;
+    border-bottom:1px solid #eef2f7;
+    padding:18px 24px;
+}
+
+.leave-table thead{
+    background:#f8fafc;
+}
+
+.leave-table th{
+    white-space:nowrap;
+    color:#475569;
+    font-weight:600;
+}
+
+.leave-table td{
+    vertical-align:middle;
+}
+
+.reason-cell{
+    max-width:280px;
+    white-space:normal;
+    word-break:break-word;
+}
+
+.form-control,
+.form-select{
+    min-height:48px;
+    border-radius:12px;
+}
+
+textarea.form-control{
+    min-height:120px;
+}
+
+.empty-state{
+    text-align:center;
+    padding:60px 20px;
+}
+
+.empty-state i{
+    font-size:3rem;
+    color:#94a3b8;
+    margin-bottom:15px;
+}
+
+.empty-state p{
+    color:#64748b;
+}
+
+@media (max-width:768px){
+
+    .leave-table th,
+    .leave-table td{
+        font-size:.9rem;
+    }
+
+    .balance-card{
+        padding:18px;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Leave Request{% endblock %}
+
+{% block content %}
 <div class="container py-4">
   <p>Paid Leaves Left: {{ left_paid_leaves }}, Unpaid Leaves Left: {{ left_unpaid_leaves }}</p>
   <h2>Request Leave</h2>
@@ -98,4 +596,4 @@
   {% endif %}
 </div>
 
-{% endblock %}
+{% endblock %} {% endcomment %}

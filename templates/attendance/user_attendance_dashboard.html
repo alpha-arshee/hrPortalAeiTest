@@ -1,24 +1,360 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center m-3 mx-3">
+
+<div class="container-fluid px-2 px-md-3 px-lg-4">
+
+    <!-- Header -->
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col-12 col-md-8">
+            <h2 class="fw-bold mb-1">Attendance Dashboard</h2>
+            <small class="text-muted">
+                {{ name }} &mdash; {{ email }}
+            </small>
+        </div>
+
+        <div class="col-12 col-md-4 text-md-end">
+            <span class="badge bg-primary fs-6 p-2">
+                Employee ID: {{ employee_id }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Stats + Filter -->
+    <div class="row g-3 mb-4">
+
+        <!-- Stats Cards -->
+        <div class="col-12 col-lg-7">
+            <div class="row g-3">
+
+                <div class="col-6">
+                    <div class="card border-0 shadow-sm h-100 text-white"
+                        style="background: linear-gradient(135deg,#4f46e5,#06b6d4);">
+                        <div class="card-body d-flex align-items-center">
+                            <i class="fas fa-calendar-check fa-2x me-3"></i>
+                            <div>
+                                <small class="text-white-50">Present Days</small>
+                                <h4 class="fw-bold mb-0">
+                                    {{ present_days }}
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="card border-0 shadow-sm h-100 text-white"
+                        style="background: linear-gradient(135deg,#059669,#10b981);">
+                        <div class="card-body d-flex align-items-center">
+                            <i class="fas fa-calendar-alt fa-2x me-3"></i>
+                            <div>
+                                <small class="text-white-50">Period Days</small>
+                                <h4 class="fw-bold mb-0">
+                                    {{ total_days }}
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="col-12 col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+
+                    <form id="monthPicker" method="get">
+
+                        <div class="row g-2">
+
+                            <div class="col-12 col-sm-5">
+                                <select name="month"
+                                    id="month"
+                                    class="form-select">
+                                    {% for m_val, m_name in months %}
+                                    <option value="{{ m_val }}"
+                                        {% if m_val == month %}selected{% endif %}>
+                                        {{ m_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-sm-4">
+                                <select name="year"
+                                    id="year"
+                                    class="form-select">
+                                    {% for y in years %}
+                                    <option value="{{ y }}"
+                                        {% if y == year %}selected{% endif %}>
+                                        {{ y }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-sm-3">
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary w-100">
+                                    Go
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Description -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <p class="mb-0">
+                Here you can manage your attendance records,
+                leaves, and overtime. Below are your recent
+                punch logs for the selected month.
+            </p>
+        </div>
+    </div>
+
+    <!-- Attendance Logs -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Attendance Logs</h5>
+        </div>
+
+        <div class="card-body p-0">
+
+            {% if punch_logs and punch_logs|length > 0 %}
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Device</th>
+                            <th>Employee</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for log in punch_logs %}
+                        <tr>
+
+                            <td>{{ log.punch_date|date:"d M Y" }}</td>
+
+                            <td>{{ log.punch_time }}</td>
+
+                            <td>
+                                <span class="badge bg-success">
+                                    {{ log.status }}
+                                </span>
+                            </td>
+
+                            <td>
+
+                                {% if log.marked_by_hr and log.hr_reason %}
+
+                                <div>
+                                    <strong>HR:</strong>
+                                    {{ log.hr_reason }}
+                                </div>
+
+                                <small class="text-muted">
+                                    by
+                                    {{ log.marked_by.get_full_name|default:log.marked_by.username }}
+
+                                    {% if log.marked_at %}
+                                    <br>
+                                    {{ log.marked_at|date:"d M Y H:i" }}
+                                    {% endif %}
+                                </small>
+
+                                {% else %}
+
+                                {{ log.device_id }}
+
+                                {% if log.device_serial_no %}
+                                <br>
+                                <small class="text-muted">
+                                    {{ log.device_serial_no }}
+                                </small>
+                                {% endif %}
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if log.user %}
+
+                                {{ log.user.get_full_name|default:log.user.username }}
+
+                                {% else %}
+
+                                {% if log.department %}
+                                {{ log.department }}
+                                {% endif %}
+
+                                {% if log.first_name %}
+                                <br>
+                                {{ log.first_name }}
+                                {% endif %}
+
+                                <br>
+
+                                <small class="text-warning">
+                                    Matched by Employee ID
+                                </small>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+
+            <div class="p-3">
+                <div class="alert alert-info mb-0">
+                    No punch logs found yet.
+                </div>
+            </div>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- Overtime Section -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                Overtime ({{ month }} / {{ year }})
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-3">
+
+                <div class="col-md-6 mb-2 mb-md-0">
+                    <div class="alert alert-primary mb-0">
+                        <strong>Total Hours:</strong>
+                        {{ overtime_total_hours|default:"0" }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="alert alert-success mb-0">
+                        <strong>Total Compensation:</strong>
+                        ₹{{ overtime_total_compensation|default:"0.00" }}
+                    </div>
+                </div>
+
+            </div>
+
+            {% if overtime_entries and overtime_entries|length > 0 %}
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Hours</th>
+                            <th>Compensation</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for ot in overtime_entries %}
+                        <tr>
+                            <td>{{ ot.date|date:"d M Y" }}</td>
+                            <td>{{ ot.hours }}</td>
+                            <td>₹{{ ot.compensation }}</td>
+                            <td>{{ ot.reason }}</td>
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+            </div>
+
+            {% else %}
+
+            <div class="alert alert-info mb-0">
+                No overtime recorded for this period.
+            </div>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    const monthEl = document.getElementById('month');
+    const yearEl = document.getElementById('year');
+    const formEl = document.getElementById('monthPicker');
+
+    if (formEl) {
+        if (monthEl) {
+            monthEl.addEventListener('change', () => formEl.submit());
+        }
+
+        if (yearEl) {
+            yearEl.addEventListener('change', () => formEl.submit());
+        }
+    }
+})();
+</script>
+
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center m-3">
   <div>
     <h2 class="mb-0">Attendance Dashboard</h2>
-    <small class="text-muted">{{ name }} &mdash; {{ email }}</small>
+    <small class="text-muted d-block">{{ name }} &mdash; {{ email }}</small>
   </div>
-  <div>
+  <div class="text-md-end">
     <strong>Employee ID:</strong> {{ employee_id }}
   </div>
 </div>
 
 <!-- Constrain the dashboard to a centered container so content doesn't span full viewport -->
-<div class="container" style="max-width:100%; mx-3">
+<div class="container-fluid">
 
-  <div class="row mb-3 align-items-center px-4">
+  <div class="row mb-3 align-items-center g-3">
     <div class="col-md-6">
-      <div class="d-flex flex-wrap align-items-center gap-3">
-        <div class="card border-0 text-white"
-          style="max-width:160px; background: linear-gradient(135deg,#4f46e5,#06b6d4);">
+      <div class="d-flex flex-wrap align-items-stretch gap-3">
+        <div class="card border-0 text-white flex-fill"
+          style="min-width:150px; max-width:180px; background: linear-gradient(135deg,#4f46e5,#06b6d4);">
           <div class="card-body d-flex align-items-center gap-3 py-2 px-3">
             <i class="fas fa-calendar-check fa-2x"></i>
             <div>
@@ -28,8 +364,8 @@
           </div>
         </div>
 
-        <div class="card border-0 text-white"
-          style="max-width:160px; background: linear-gradient(135deg,#059669,#10b981);">
+        <div class="card border-0 text-white flex-fill"
+          style="min-width:150px; max-width:180px; background: linear-gradient(135deg,#059669,#10b981);">
           <div class="card-body d-flex align-items-center gap-3 py-2 px-3">
             <i class="fas fa-calendar-alt fa-2x"></i>
             <div>
@@ -42,16 +378,16 @@
     </div>
 
     <div class="col-md-6 text-md-end mt-3 mt-md-0">
-      <form id="monthPicker" method="get" class="d-flex justify-content-end align-items-center gap-2">
+      <form id="monthPicker" method="get" class="d-flex flex-wrap justify-content-md-end align-items-center gap-2">
         <label class="visually-hidden" for="month">Month</label>
-        <select name="month" id="month" class="form-select form-select-sm" style="width:130px;">
+        <select name="month" id="month" class="form-select form-select-sm w-auto">
           {% for m_val, m_name in months %}
           <option value="{{ m_val }}" {% if m_val == month %}selected{% endif %}>{{ m_name }}</option>
           {% endfor %}
         </select>
 
         <label class="visually-hidden" for="year">Year</label>
-        <select name="year" id="year" class="form-select form-select-sm" style="width:95px;">
+        <select name="year" id="year" class="form-select form-select-sm w-auto">
           {% for y in years %}
           <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
           {% endfor %}
@@ -66,7 +402,7 @@
 
 
 
-<p>Here you can manage your attendance records, leaves, and overtime. Below are your recent punch logs for the selected
+<p class="mx-3">Here you can manage your attendance records, leaves, and overtime. Below are your recent punch logs for the selected
   month.</p>
 
 {% if punch_logs and punch_logs|length > 0 %}
@@ -156,4 +492,4 @@
     }
   })();
 </script>
-{% endblock %}
+{% endblock %} {% endcomment %}

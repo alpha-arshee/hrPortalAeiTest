@@ -1,4 +1,205 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Leave Requests{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-3 px-lg-4 py-4">
+
+    <!-- Header -->
+
+    <div class="page-header mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-calendar-minus text-primary me-2"></i>
+                Leave Requests
+            </h2>
+
+            <p class="text-muted mb-0">
+                View and monitor employee leave applications.
+            </p>
+        </div>
+
+        <div>
+            <span class="badge bg-primary fs-6">
+                {{ leaves|length }} Requests
+            </span>
+        </div>
+
+    </div>
+
+    <!-- Leave Requests -->
+
+    <div class="card leave-card">
+
+        <div class="card-header">
+
+            <h5 class="mb-0">
+                Employee Leave Records
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            {% if leaves %}
+
+            <div class="table-responsive">
+
+                <table class="table leave-table mb-0">
+
+                    <thead>
+
+                        <tr>
+                            <th>#</th>
+                            <th>Employee</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Total Days</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for leave in leaves %}
+
+                        <tr>
+
+                            <td>
+                                {{ forloop.counter }}
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">
+                                    {{ leave.user.get_full_name|default:leave.user.username }}
+                                </div>
+
+                                {% if leave.user.employee_id %}
+                                <small class="text-muted">
+                                    {{ leave.user.employee_id }}
+                                </small>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{ leave.start_date|date:"d M Y" }}
+                            </td>
+
+                            <td>
+                                {{ leave.end_date|date:"d M Y" }}
+                            </td>
+
+                            <td>
+                                {{ leave.start_date|timesince:leave.end_date }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+            <div class="empty-state">
+
+                <i class="fas fa-calendar-times"></i>
+
+                <h5>No Leave Requests Found</h5>
+
+                <p>
+                    No leave applications are available.
+                </p>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.leave-card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 8px 25px rgba(0,0,0,.06);
+}
+
+.leave-card .card-header{
+    background:#fff;
+    border-bottom:1px solid #eef2f7;
+    padding:18px 24px;
+}
+
+.leave-table thead{
+    background:#f8fafc;
+}
+
+.leave-table th{
+    font-weight:600;
+    color:#475569;
+    white-space:nowrap;
+}
+
+.leave-table td{
+    vertical-align:middle;
+}
+
+.empty-state{
+    text-align:center;
+    padding:60px 20px;
+}
+
+.empty-state i{
+    font-size:3rem;
+    color:#94a3b8;
+    margin-bottom:15px;
+}
+
+.empty-state h5{
+    margin-bottom:10px;
+}
+
+.empty-state p{
+    color:#64748b;
+    margin:0;
+}
+
+@media (max-width:768px){
+
+    .leave-table th,
+    .leave-table td{
+        font-size:.9rem;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
 
 {% load static %}
 {% load crispy_forms_tags %}
@@ -11,4 +212,4 @@
     <h2>{{ leave.user }}</h2>
     <h2>{{ leave.start_date }} to {{ leave.end_date }}</h2>
   {% endfor %}
-{% endblock %}
+{% endblock %} {% endcomment %}

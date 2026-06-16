@@ -4,7 +4,205 @@
 {% block title %}Profile - Authentication System{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="profile-page">
+
+    <div class="container">
+
+        <!-- Profile Hero -->
+        <div class="profile-hero">
+
+            <div class="profile-avatar-wrapper">
+
+                {% if request.user.profile_picture %}
+                <img id="profilePreview"
+                     src="{{ request.user.profile_picture.url }}"
+                     class="profile-avatar"
+                     alt="Profile">
+                {% else %}
+                <img id="profilePreview"
+                     src="/static/img/default-avatar.png"
+                     class="profile-avatar"
+                     alt="Profile">
+                {% endif %}
+
+            </div>
+
+            <h2 class="profile-name">
+                {{ request.user.get_full_name|default:request.user.username }}
+            </h2>
+
+            <p class="profile-email">
+                {{ request.user.email }}
+            </p>
+
+            {% if request.user.department %}
+            <span class="profile-badge">
+                {{ request.user.department }}
+            </span>
+            {% endif %}
+
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <!-- Personal Information -->
+
+            <div class="section-card">
+
+                <div class="section-header">
+                    <i class="fas fa-user"></i>
+                    Personal Information
+                </div>
+
+                <div class="row">
+
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        {{ form.first_name|as_crispy_field }}
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        {{ form.middle_name|as_crispy_field }}
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        {{ form.last_name|as_crispy_field }}
+                    </div>
+
+                    <div class="col-lg-6 col-md-6 mb-3">
+                        {{ form.gender|as_crispy_field }}
+                    </div>
+
+                    <div class="col-lg-6 col-md-6 mb-3">
+                        {{ form.dob|as_crispy_field }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Contact -->
+
+            <div class="section-card">
+
+                <div class="section-header">
+                    <i class="fas fa-phone"></i>
+                    Contact Information
+                </div>
+
+                <div class="row">
+
+                    <div class="col-lg-6 mb-3">
+                        {{ form.email|as_crispy_field }}
+                    </div>
+
+                    <div class="col-lg-6 mb-3">
+                        {{ form.phone_number|as_crispy_field }}
+                    </div>
+
+                    <div class="col-lg-6 mb-3">
+                        {{ form.emergency_contact|as_crispy_field }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Employment -->
+
+            <div class="section-card">
+
+                <div class="section-header">
+                    <i class="fas fa-briefcase"></i>
+                    Employment Information
+                </div>
+
+                <div class="row">
+
+                    <div class="col-lg-6 mb-3">
+                        {{ form.department|as_crispy_field }}
+                    </div>
+
+                    <div class="col-lg-6 mb-3">
+                        {{ form.skills|as_crispy_field }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Identity -->
+
+            <div class="section-card">
+
+                <div class="section-header">
+                    <i class="fas fa-id-card"></i>
+                    Identity Information
+                </div>
+
+                <div class="row">
+
+                    <div class="col-lg-6 mb-3">
+                        {{ form.addhar_id|as_crispy_field }}
+                    </div>
+
+                    <div class="col-lg-6 mb-3">
+                        {{ form.profile_picture|as_crispy_field }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Address -->
+
+            <div class="section-card">
+
+                <div class="section-header">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Address Information
+                </div>
+
+                <div class="mb-3">
+                    {{ form.current_address|as_crispy_field }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.permanent_address|as_crispy_field }}
+                </div>
+
+            </div>
+
+            <!-- Actions -->
+
+            <div class="action-bar">
+
+                <a href="{% url 'accounts:dashboard' %}"
+                   class="btn btn-light action-btn">
+
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary action-btn">
+
+                    <i class="fas fa-save me-2"></i>
+                    Save Changes
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+{% comment %} <div class="container py-4">
     <div class="row">
         <div class="col-md-8 mx-auto">
             <div class="card shadow">
@@ -106,7 +304,121 @@
             </div>
         </div>
     </div>
-</div>
+</div> {% endcomment %}
+
+<style>
+
+.profile-page{
+    padding:40px 0;
+}
+
+.profile-hero{
+    background:linear-gradient(135deg,#2563eb,#3b82f6);
+    border-radius:24px;
+    padding:40px 20px;
+    text-align:center;
+    color:#fff;
+    margin-bottom:30px;
+    box-shadow:0 15px 40px rgba(37,99,235,.20);
+}
+
+.profile-avatar{
+    width:130px;
+    height:130px;
+    border-radius:50%;
+    object-fit:cover;
+    border:5px solid rgba(255,255,255,.2);
+    cursor:pointer;
+}
+
+.profile-name{
+    margin-top:20px;
+    font-weight:700;
+}
+
+.profile-email{
+    opacity:.9;
+}
+
+.profile-badge{
+    display:inline-block;
+    background:rgba(255,255,255,.18);
+    padding:8px 16px;
+    border-radius:50px;
+    margin-top:10px;
+}
+
+.section-card{
+    background:#fff;
+    border-radius:20px;
+    padding:28px;
+    margin-bottom:24px;
+    box-shadow:0 4px 20px rgba(0,0,0,.06);
+    border:1px solid #eef2f7;
+}
+
+.section-header{
+    font-size:1.1rem;
+    font-weight:600;
+    color:#2563eb;
+    margin-bottom:20px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.action-bar{
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    padding:20px 0;
+}
+
+.action-btn{
+    min-width:160px;
+}
+
+.form-control,
+.form-select{
+    min-height:48px;
+    border-radius:12px;
+}
+
+textarea.form-control{
+    min-height:120px;
+}
+
+@media (max-width:768px){
+
+    .profile-page{
+        padding:20px 0;
+    }
+
+    .profile-hero{
+        padding:30px 15px;
+        border-radius:20px;
+    }
+
+    .profile-avatar{
+        width:100px;
+        height:100px;
+    }
+
+    .section-card{
+        padding:20px;
+    }
+
+    .action-bar{
+        flex-direction:column;
+    }
+
+    .action-btn{
+        width:100%;
+    }
+
+}
+
+</style>
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {

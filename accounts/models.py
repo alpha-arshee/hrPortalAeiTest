@@ -44,7 +44,10 @@ class User(AbstractUser):
     ]
     # Name validator: allow letters, spaces, hyphens and apostrophes — no digits
     name_regex = RegexValidator(regex=r"^[A-Za-z\s'-]+$", message="Name must contain only letters, spaces, hyphens or apostrophes (no numbers).")
-
+    phone_regex = RegexValidator(
+    regex=r'^\+?\d{10,15}$',
+    message="Enter a valid phone number with 10 to 15 digits."
+    )
     # Override inherited name fields to enforce validation
     first_name = models.CharField(max_length=150, blank=True, validators=[name_regex])
     last_name = models.CharField(max_length=150, blank=True, validators=[name_regex])
@@ -57,7 +60,6 @@ class User(AbstractUser):
     addhar_id = models.CharField(max_length=50, unique=False, null=True, blank=True)
     grade = models.CharField(max_length=20, blank=True, null=True)
     # E.164 phone number validator (optional leading +, up to 15 digits)
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
     phone_number = models.CharField(max_length=16, blank=True, validators=[phone_regex])
     company_email = models.EmailField(max_length=254, blank=True, null=True)
     department = models.CharField(max_length=100, blank=True)
@@ -93,10 +95,14 @@ class User(AbstractUser):
 
 class EmployeeProfile(models.Model):
     """Extended profile for employees"""
-    
+    emergency_contact_regex = RegexValidator(
+    regex=r'^\+?\d{10,15}$',
+    message="Enter a valid phone number with 10 to 15 digits."
+    )
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     skills = models.JSONField(default=list, blank=True)
-    emergency_contact = models.CharField(max_length=16, blank=True, validators=[User.phone_regex])
+    emergency_contact = models.CharField(max_length=16, blank=True, validators=[emergency_contact_regex])
     current_address = models.TextField(blank=True)
     permanent_address = models.TextField(blank=True)
     ctc = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

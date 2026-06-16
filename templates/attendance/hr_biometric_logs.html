@@ -4,6 +4,352 @@
 
 {% block content %}
 
+<div class="container-fluid px-3 px-lg-4 py-4">
+
+    <!-- Page Header -->
+
+    <div class="page-header mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-calendar-check text-primary me-2"></i>
+                Attendance Management
+            </h2>
+
+            <p class="text-muted mb-0">
+                Track attendance, monitor workforce presence, and review biometric logs.
+            </p>
+        </div>
+
+        <div>
+            <a class="btn btn-primary"
+               href="{% url 'attendance:employee_attendance_log' %}">
+
+                <i class="fas fa-users me-2"></i>
+                Employees Attendance Log
+
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Stats Cards -->
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-4">
+
+            <div class="stat-card">
+
+                <div class="stat-icon bg-primary-subtle">
+                    <i class="fas fa-users text-primary"></i>
+                </div>
+
+                <div>
+                    <h3>{{ total_employees }}</h3>
+                    <p>Total Employees</p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="stat-card">
+
+                <div class="stat-icon bg-success-subtle">
+                    <i class="fas fa-user-check text-success"></i>
+                </div>
+
+                <div>
+                    <h3>{{ present_today }}</h3>
+                    <p>Present Today</p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="stat-card">
+
+                <div class="stat-icon bg-warning-subtle">
+                    <i class="fas fa-plane-departure text-warning"></i>
+                </div>
+
+                <div>
+                    <h3>{{ on_leave }}</h3>
+                    <p>On Leave</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Recent Logs -->
+
+    <div class="card attendance-card">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+            <h5 class="mb-0">
+                <i class="fas fa-fingerprint me-2"></i>
+                Recent Biometric Logs
+            </h5>
+
+            <span class="badge bg-light text-dark">
+                {{ logs|length }} Records
+            </span>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table attendance-table mb-0">
+
+                    <thead>
+
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Employee ID</th>
+                            <th>Status</th>
+                            <th>Employee</th>
+                            <th>Device / HR Remark</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for log in logs %}
+
+                        <tr>
+
+                            <td>
+                                {{ log.punch_date|date:"d M Y" }}
+                            </td>
+
+                            <td>
+                                {{ log.punch_time }}
+                            </td>
+
+                            <td>
+                                <span class="employee-id">
+                                    {{ log.employee_id }}
+                                </span>
+                            </td>
+
+                            <td>
+
+                                {% if log.status == "IN" %}
+                                    <span class="badge bg-success">
+                                        Check In
+                                    </span>
+
+                                {% elif log.status == "OUT" %}
+                                    <span class="badge bg-danger">
+                                        Check Out
+                                    </span>
+
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        {{ log.status }}
+                                    </span>
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if log.user %}
+                                    <div class="fw-semibold">
+                                        {{ log.user.get_full_name|default:log.user.username }}
+                                    </div>
+                                {% else %}
+                                    <div>
+                                        {{ log.department|default:'-' }}
+                                    </div>
+
+                                    {% if log.first_name %}
+                                        <small class="text-muted">
+                                            {{ log.first_name }}
+                                        </small>
+                                    {% endif %}
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if log.marked_by_hr and log.hr_reason %}
+
+                                    <div class="fw-semibold text-primary">
+                                        HR Marked
+                                    </div>
+
+                                    <div>
+                                        {{ log.hr_reason }}
+                                    </div>
+
+                                    <small class="text-muted">
+
+                                        by
+
+                                        {{ log.marked_by.get_full_name|default:log.marked_by.username }}
+
+                                        {% if log.marked_at %}
+                                        • {{ log.marked_at|date:"d M Y H:i" }}
+                                        {% endif %}
+
+                                    </small>
+
+                                {% else %}
+
+                                    {{ log.device_id }}
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% empty %}
+
+                        <tr>
+
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                No biometric logs available.
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.stat-card{
+    background:#fff;
+    border-radius:18px;
+    padding:24px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    box-shadow:0 6px 25px rgba(0,0,0,.06);
+    height:100%;
+}
+
+.stat-icon{
+    width:60px;
+    height:60px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.4rem;
+}
+
+.stat-card h3{
+    margin:0;
+    color:#0f172a;
+    font-weight:700;
+}
+
+.stat-card p{
+    margin:4px 0 0;
+    color:#64748b;
+}
+
+.attendance-card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 8px 30px rgba(0,0,0,.08);
+}
+
+.attendance-card .card-header{
+    background:#fff;
+    border-bottom:1px solid #eef2f7;
+    padding:18px 24px;
+}
+
+.attendance-table{
+    width:100%;
+}
+
+.attendance-table thead{
+    background:#f8fafc;
+}
+
+.attendance-table th{
+    color:#475569;
+    font-weight:600;
+    white-space:nowrap;
+}
+
+.attendance-table td{
+    vertical-align:middle;
+}
+
+.employee-id{
+    font-weight:600;
+    color:#2563eb;
+}
+
+@media (max-width:768px){
+
+    .page-header{
+        align-items:flex-start;
+    }
+
+    .stat-card{
+        padding:18px;
+    }
+
+    .attendance-table th,
+    .attendance-table td{
+        font-size:.9rem;
+        white-space:nowrap;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+
+{% block title %}Attendance Management{% endblock %}
+
+{% block content %}
+
 <div class="d-flex justify-content-between align-items-center mb-3 mx-2">
   <div>
     <table class="table table-borderless table-sm mb-0">
@@ -73,4 +419,4 @@
   </table>
 </div>
 
-{% endblock %}
+{% endblock %} {% endcomment %}

@@ -1,5 +1,533 @@
 {% extends 'base.html' %}
 
+{% block title %}Dashboard - AEI HR System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-title {
+        margin-bottom: 20px;
+    }
+
+    .page-title h1 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 4px;
+    }
+
+    .page-title p {
+        color: #6b7280;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 14px;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+        border-color: #2563eb;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #1f2937;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 700;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .card-body-compact { 
+        padding: 16px; 
+    }
+
+    .info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .info-row:last-child { 
+        border-bottom: none; 
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .info-value {
+        font-size: 0.9rem;
+        color: #1f2937;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .badge-success { 
+        background: #ecfdf5; 
+        color: #065f46; 
+    }
+
+    .badge-warning { 
+        background: #fffbeb; 
+        color: #78350f; 
+    }
+
+    .profile-section {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 12px;
+        border: 3px solid #2563eb;
+        display: block;
+    }
+
+    .avatar-large-fallback {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #2563eb;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+        font-size: 2.2rem;
+        font-weight: 700;
+        border: 3px solid #2563eb;
+    }
+
+    .profile-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 4px;
+    }
+
+    .profile-role {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .btn-action {
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-action-primary {
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .btn-action-primary:hover { 
+        background: #1e40af; 
+    }
+
+    .btn-action-secondary {
+        background: #f3f4f6;
+        color: #1f2937;
+        border: 1px solid #e5e7eb;
+    }
+
+    .btn-action-secondary:hover { 
+        background: #e5e7eb; 
+    }
+
+    .activity-list { 
+        margin: 0; 
+        padding: 0; 
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .activity-item:last-child { 
+        border-bottom: none; 
+    }
+
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #dbeafe;
+        color: #0284c7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .activity-text { 
+        flex: 1; 
+    }
+
+    .activity-time { 
+        font-size: 0.8rem; 
+        color: #6b7280; 
+        font-weight: 600; 
+    }
+
+    .activity-ip { 
+        font-size: 0.75rem; 
+        color: #9ca3af; 
+        margin-top: 2px; 
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 32px 16px;
+        color: #6b7280;
+    }
+
+    .empty-state i { 
+        font-size: 2rem; 
+        margin-bottom: 8px; 
+        opacity: 0.4; 
+        display: block; 
+    }
+
+    .empty-state p { 
+        margin: 0; 
+        font-size: 0.9rem; 
+    }
+
+    .warning-alert {
+        background: #fffbeb;
+        border: 1px solid #fbbf24;
+        border-left: 4px solid #f59e0b;
+        border-radius: 6px;
+        padding: 12px 14px;
+        margin: 16px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        font-size: 0.9rem;
+        color: #78350f;
+    }
+
+    .warning-alert i { 
+        color: #f59e0b; 
+        margin-top: 2px; 
+        flex-shrink: 0; 
+    }
+
+    .skills-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .skill-tag {
+        background: #dbeafe;
+        color: #0284c7;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+        .page-title h1 { 
+            font-size: 1.2rem; 
+        }
+        .stat-grid { 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 10px; 
+        }
+        .grid-2 { 
+            grid-template-columns: 1fr; 
+        }
+        .action-buttons { 
+            grid-template-columns: 1fr; 
+        }
+        .info-value {
+            text-align: left;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 20px 16px;">
+
+    <!-- Page Title -->
+    <div class="page-title">
+        <h1>
+            <i class="fas fa-home" style="color:#2563eb;margin-right:8px;"></i>Dashboard
+        </h1>
+        <p>Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ user.username }}</div>
+            <div class="stat-label">Username</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ user.employee_id|default:"—" }}</div>
+            <div class="stat-label">Employee ID</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ user.department|default:"—" }}</div>
+            <div class="stat-label">Department</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ user.designation|default:"—" }}</div>
+            <div class="stat-label">Designation</div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid-2">
+        <!-- Profile Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user-circle" style="color:#2563eb;margin-right:8px;"></i>Profile
+            </div>
+            <div class="profile-section">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" class="avatar-large" alt="Profile"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                <div class="avatar-large-fallback" style="display:none;">{{ user.get_full_name|default:user.username|first|upper }}</div>
+                {% else %}
+                <div class="avatar-large-fallback">{{ user.get_full_name|default:user.username|first|upper }}</div>
+                {% endif %}
+
+                <p class="profile-name">{{ user.get_full_name|default:user.username }}</p>
+                <p class="profile-role">{{ user.get_role_display }}</p>
+
+                {% if user.is_approved %}
+                <span class="badge badge-success"><i class="fas fa-check"></i> Approved</span>
+                {% else %}
+                <span class="badge badge-warning"><i class="fas fa-clock"></i> Pending</span>
+                {% endif %}
+
+                <div class="info-list" style="margin-top:14px;padding:0 12px;text-align:left;">
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value" style="font-size:0.8rem;">{{ user.email }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Phone</span>
+                        <span class="info-value">{{ user.phone_number|default:"—" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Gender</span>
+                        <span class="info-value">{{ user.gender|default:"—"|capfirst }}</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{% url 'accounts:profile' %}" class="btn-action btn-action-primary">
+                        <i class="fas fa-edit"></i>Edit
+                    </a>
+                    <button class="btn-action btn-action-secondary" onclick="window.print()">
+                        <i class="fas fa-print"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Information Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle" style="color:#2563eb;margin-right:8px;"></i>Account Information
+            </div>
+            <div class="card-body-compact">
+                <div class="info-list">
+                    <div class="info-row">
+                        <span class="info-label">Company Email</span>
+                        <span class="info-value" style="font-size:0.8rem;">{{ user.company_email|default:"—" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Grade</span>
+                        <span class="info-value">{{ user.grade|default:"—" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Project</span>
+                        <span class="info-value">{{ user.project_name|default:"—" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">PF Number</span>
+                        <span class="info-value">
+                            {% if tax_info and tax_info.pf_number %}{{ tax_info.pf_number }}{% else %}—{% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">CTC</span>
+                        <span class="info-value">
+                            {% if profile.ctc %}₹ {{ profile.ctc|floatformat:2 }}{% else %}—{% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Account Status</span>
+                        <span class="info-value">
+                            {% if user.is_approved %}
+                            <span class="badge badge-success">Active</span>
+                            {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                {% if profile.skills %}
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid #f3f4f6;">
+                    <div class="info-label" style="margin-bottom:8px;">Skills</div>
+                    <div class="skills-list">
+                        {% for skill in profile.skills %}
+                        <div class="skill-tag">{{ skill }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Recent Activity -->
+    <div class="grid-2">
+        <!-- Quick Actions Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bolt" style="color:#2563eb;margin-right:8px;"></i>Quick Actions
+            </div>
+            <div class="card-body-compact">
+                <div class="action-buttons" style="margin:0;">
+                    <a href="{% url 'accounts:profile' %}" class="btn-action btn-action-primary">
+                        <i class="fas fa-user-edit"></i>Update Profile
+                    </a>
+                    <a href="{% url 'accounts:user_details' user.id %}" class="btn-action btn-action-primary">
+                        <i class="fas fa-eye"></i>View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-history" style="color:#2563eb;margin-right:8px;"></i>Recent Activity
+            </div>
+            <div class="card-body-compact">
+                {% if recent_logins %}
+                <ul class="activity-list">
+                    {% for login in recent_logins %}
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </div>
+                        <div class="activity-text">
+                            <div class="activity-time">{{ login.timestamp|date:"M d, Y H:i" }}</div>
+                            <div class="activity-ip">{{ login.ip_address }}</div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <p>No recent activity</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Approval Notice -->
+    {% if not user.is_approved %}
+    <div class="warning-alert">
+        <i class="fas fa-exclamation-circle"></i>
+        <div>
+            <strong>Account Pending Approval</strong>
+            <p style="margin:2px 0 0;">Your account is awaiting HR review. Some features may be limited until approval.</p>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+
 {% block title %}Employee Dashboard - Authentication System{% endblock %}
 
 {% block content %}
@@ -237,4 +765,4 @@
     </div>
     {% endif %}
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}

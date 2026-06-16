@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% comment %} {% extends 'base.html' %}
 
 {% block title %}Edit Overtime{% endblock %}
 
@@ -29,4 +29,4 @@
       <a href="{% url 'attendance:employee_attendance_detail' employee.id %}?year={{ year }}&month={{ month }}" class="btn btn-secondary btn-sm">Cancel</a>
     </div>
   </form>
-{% endblock %}
+{% endblock %} {% endcomment %}
