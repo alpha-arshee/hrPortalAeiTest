@@ -151,21 +151,29 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 
 
-# Email backend (Outlook / Office365 SMTP by default for development)
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.office365.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='admin.hrms@arshee-enginv.com')
-# Provide a default empty password so the server won't crash in dev if not set in .env
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+# # Email backend (Outlook / Office365 SMTP by default for development)
+# EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+# EMAIL_HOST = config('EMAIL_HOST', default='smtp.office365.com')
+# EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+# EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='admin.hrms@arshee-enginv.com')
+# # Provide a default empty password so the server won't crash in dev if not set in .env
+# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+# EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 
-# Use the authenticated host user as the default sender so SMTP server
-# doesn't receive messages from 'webmaster@localhost' (which many servers reject).
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-SERVER_EMAIL = EMAIL_HOST_USER
-
+# # Use the authenticated host user as the default sender so SMTP server
+# # doesn't receive messages from 'webmaster@localhost' (which many servers reject).
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# SERVER_EMAIL = EMAIL_HOST_USER
 # For production, configure SMTP settings
+
+
+# Email backend using SendGrid API over HTTPS
+EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
+SENDGRID_API_KEY = config('SENDGRID_API_KEY', default='')
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='admin.hrms@arshee-enginv.com')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # When True, the biometric fetch command will be executed (in background)
 # after a successful user login. Set to False to disable automatic fetch-on-login.
