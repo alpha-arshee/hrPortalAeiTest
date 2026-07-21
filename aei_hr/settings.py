@@ -5,7 +5,7 @@ Django settings for aei_hr project.
 from pathlib import Path
 import os
 from decouple import config
-
+from datetime import time as dtime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'attendance.middleware.BiometricDailySyncMiddleware',  # Custom middleware for biometric sync
 ]
 
 ROOT_URLCONF = 'aei_hr.urls'
@@ -175,9 +176,15 @@ SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='admin.hrms@arshee-enginv.com')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-# When True, the biometric fetch command will be executed (in background)
-# after a successful user login. Set to False to disable automatic fetch-on-login.
-RUN_BIOMETRIC_ON_LOGIN = True
+# # When True, the biometric fetch command will be executed (in background)
+# # after a successful user login. Set to False to disable automatic fetch-on-login.
+# RUN_BIOMETRIC_ON_LOGIN = True
+
+
+RUN_BIOMETRIC_ON_LOGIN = True  # reuse this flag, or rename to RUN_BIOMETRIC_DAILY
+RUN_BIOMETRIC_AFTER_TIME = dtime(13, 0)  # 1 PM
+
+
 
 # Production security settings (tunable via environment)
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)

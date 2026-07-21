@@ -261,3 +261,9 @@ class AttendanceRequest(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.request_date} ({self.status})"
+
+
+# to run biometirc on time
+class BiometricSyncStatus(models.Model):
+    id = models.IntegerField(primary_key=True, default=1)
+    last_run_date = models.DateField(null=True, blank=True)

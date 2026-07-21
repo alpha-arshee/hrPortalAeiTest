@@ -122,6 +122,62 @@ def register(request):
     return render(request, 'accounts/register.html', {'form': form})
 
 
+# def user_login(request):
+#     """User login view with attempt tracking"""
+#     if request.user.is_authenticated:
+#         return redirect('accounts:dashboard')
+    
+#     if request.method == 'POST':
+#         form = UserLoginForm(request.POST)
+#         if form.is_valid():
+#             username = form.cleaned_data['username']
+#             password = form.cleaned_data['password']
+            
+#             # Get client IP
+#             ip_address = request.META.get('HTTP_X_FORWARDED_FOR')
+#             if ip_address:
+#                 ip_address = ip_address.split(',')[0]
+#             else:
+#                 ip_address = request.META.get('REMOTE_ADDR')
+            
+#             user = authenticate(request, username=username, password=password)
+            
+#             # Log login attempt
+#             LoginAttempt.objects.create(
+#                 username=username,
+#                 ip_address=ip_address,
+#                 success=user is not None,
+#                 user_agent=request.META.get('HTTP_USER_AGENT', '')
+#             )
+            
+#             if user is not None:
+#                 if user.is_approved:
+#                     login(request, user)
+#                     messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
+
+#                     # Optionally run biometric fetch in background after successful login
+#                     try:
+#                         if getattr(settings, 'RUN_BIOMETRIC_ON_LOGIN', False):
+#                             def _run_fetch():
+#                                 try:
+#                                     call_command('fetch_biometric_data')
+#                                 except Exception:
+#                                     logger.exception('fetch_biometric_data failed during login-trigger')
+#                             threading.Thread(target=_run_fetch, daemon=True).start()
+#                     except Exception:
+#                         logger.exception('Failed to start biometric fetch thread on login')
+
+#                     return redirect('accounts:dashboard')
+#                 else:
+#                     messages.error(request, 'Your account is pending approval from HR.')
+#             else:
+#                 messages.error(request, 'Invalid username or password.')
+#     else:
+#         form = UserLoginForm()
+    
+#     return render(request, 'accounts/login.html', {'form': form})
+
+
 def user_login(request):
     """User login view with attempt tracking"""
     if request.user.is_authenticated:
@@ -154,19 +210,6 @@ def user_login(request):
                 if user.is_approved:
                     login(request, user)
                     messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
-
-                    # Optionally run biometric fetch in background after successful login
-                    try:
-                        if getattr(settings, 'RUN_BIOMETRIC_ON_LOGIN', False):
-                            def _run_fetch():
-                                try:
-                                    call_command('fetch_biometric_data')
-                                except Exception:
-                                    logger.exception('fetch_biometric_data failed during login-trigger')
-                            threading.Thread(target=_run_fetch, daemon=True).start()
-                    except Exception:
-                        logger.exception('Failed to start biometric fetch thread on login')
-
                     return redirect('accounts:dashboard')
                 else:
                     messages.error(request, 'Your account is pending approval from HR.')
