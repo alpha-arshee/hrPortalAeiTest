@@ -48,12 +48,16 @@ class User(AbstractUser):
     regex=r'^\+?\d{10,15}$',
     message="Enter a valid phone number with 10 to 15 digits."
     )
+    employee_id_regex = RegexValidator(
+    regex=r'^[0-9]+$',
+    message="Employee ID must be numeric and should match the Employee ID on the biometric device."
+    )
     # Override inherited name fields to enforce validation
     first_name = models.CharField(max_length=150, blank=True, validators=[name_regex])
     last_name = models.CharField(max_length=150, blank=True, validators=[name_regex])
     
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='employee')
-    employee_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    employee_id = models.CharField(max_length=50, unique=True, null=True, blank=True, validators=[employee_id_regex])
     emp_code = models.CharField(max_length=50, unique=False, null=True, blank=True)
     project_name = models.CharField(max_length=100, blank=True)
     designation = models.CharField(max_length=100, blank=True)
