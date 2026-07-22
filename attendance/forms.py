@@ -12,7 +12,7 @@ class LeaveRequestForm(forms.ModelForm):
             ('paid_casual', 'Paid Casual Leave'),
             ('paid_sick', 'Paid Sick Leave'),
             ('paid_privilege', 'Paid Privilege Leave'),
-            ('unpaid', 'Unpaid Leave'),
+            # ('unpaid', 'Unpaid Leave'),
         ],
         widget=forms.Select(attrs={'class': 'form-select'})
     )

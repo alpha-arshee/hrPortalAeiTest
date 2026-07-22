@@ -265,7 +265,7 @@
                             <div class="card-body">
                                 <div class="row g-3">
                                     <div class="col-12 col-md-6">{{ form.total_paid_leaves|as_crispy_field }}</div>
-                                    <div class="col-12 col-md-6">{{ form.total_unpaid_leaves|as_crispy_field }}</div>
+                                    {% comment %} <div class="col-12 col-md-6">{{ form.total_unpaid_leaves|as_crispy_field }}</div> {% endcomment %}
                                 </div>
                             </div>
                         </div>

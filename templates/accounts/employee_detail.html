@@ -324,7 +324,7 @@
                 <table class="info-table">
                     <tbody>
                         <tr><th>Paid Leave</th><td style="font-size:1.2rem;font-weight:700;color:#2563eb;">{{ leave_quota.total_paid_leaves }}</td></tr>
-                        <tr><th>Unpaid Leave</th><td style="font-size:1.2rem;font-weight:700;color:#6b7280;">{{ leave_quota.total_unpaid_leaves }}</td></tr>
+                        {% comment %} <tr><th>Unpaid Leave</th><td style="font-size:1.2rem;font-weight:700;color:#6b7280;">{{ leave_quota.total_unpaid_leaves }}</td></tr> {% endcomment %}
                     </tbody>
                 </table>
                 {% else %}
