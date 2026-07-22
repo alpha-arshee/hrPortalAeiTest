@@ -473,7 +473,7 @@
             {% for lr in pending_leave_requests %}
             <tr>
               <td>{% if lr.user %}{{ lr.user.get_full_name|default:lr.user.username }}{% else %}—{% endif %}</td>
-              <td>{{ lr.leave_type|capfirst }}</td>
+              <td>{{ lr.get_leave_type_display }}</td>
               <td>{{ lr.start_date|date:"M d" }} – {{ lr.end_date|date:"M d" }}</td>
               <td><span class="badge badge-amber">{{ lr.status|capfirst }}</span></td>
             </tr>
@@ -887,7 +887,7 @@
                                 {% for lr in pending_leave_requests %}
                                 <tr>
                                     <td>{% if lr.user %}{{ lr.user.get_full_name|default:lr.user.username }}{% else %}-{% endif %}</td>
-                                    <td>{{ lr.leave_type|capfirst }}</td>
+                                    <td>{{ lr.get_leave_type_display }}</td>
                                     <td>{{ lr.start_date|date:"M d" }} - {{ lr.end_date|date:"M d" }}</td>
                                     <td><span class="badge bg-warning">{{ lr.status|capfirst }}</span></td>
                                 </tr>

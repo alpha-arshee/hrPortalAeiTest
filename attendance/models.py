@@ -4,15 +4,42 @@ import logging
 # Create your models here.
 
 class LeaveQuota(models.Model):
+    PAID_LEAVE_TYPE_FIELD_MAP = {
+        'paid_casual': 'paid_leave_use_as_causual_leaves',
+        'paid_sick': 'paid_leave_use_as_sick_leaves',
+        'paid_privilege': 'paid_leave_use_as_privilege_leaves',
+    }
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     year = models.IntegerField()
     total_paid_leaves = models.IntegerField(default=0)
+    paid_leave_use_as_causual_leaves = models.IntegerField(default=0)
+    paid_leave_use_as_sick_leaves = models.IntegerField(default=0)
+    paid_leave_use_as_privilege_leaves = models.IntegerField(default=0)
     total_unpaid_leaves = models.IntegerField(default=0)
     used_paid_leaves = models.IntegerField(default=0)
     used_unpaid_leaves = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user.username} - {self.year}"
+
+    @property
+    def remaining_paid_leaves(self):
+        return max((self.total_paid_leaves or 0) - (self.used_paid_leaves or 0), 0)
+
+    def register_leave_usage(self, leave_type, days):
+        days = days or 0
+
+        if leave_type == 'unpaid':
+            self.used_unpaid_leaves = (self.used_unpaid_leaves or 0) + days
+            return
+
+        self.used_paid_leaves = (self.used_paid_leaves or 0) + days
+
+        field_name = self.PAID_LEAVE_TYPE_FIELD_MAP.get(leave_type)
+        if field_name:
+            current_value = getattr(self, field_name, 0) or 0
+            setattr(self, field_name, current_value + days)
 
 class AttendanceRecord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -28,8 +55,21 @@ class AttendanceRecord(models.Model):
         return f"{self.user.username} - {self.date}"
 
 class Leave(models.Model):
+    PAID_CASUAL = 'paid_casual'
+    PAID_SICK = 'paid_sick'
+    PAID_PRIVILEGE = 'paid_privilege'
+    LEGACY_PAID = 'paid'
+
+    LEAVE_TYPE_CHOICES = [
+        (PAID_CASUAL, 'Paid Casual Leave'),
+        (PAID_SICK, 'Paid Sick Leave'),
+        (PAID_PRIVILEGE, 'Paid Privilege Leave'),
+        (LEGACY_PAID, 'Paid Leave'),
+        ('unpaid', 'Unpaid Leave'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    leave_type = models.CharField(max_length=20, choices=[('paid', 'Paid'), ('unpaid', 'Unpaid')], default='paid')
+    leave_type = models.CharField(max_length=20, choices=LEAVE_TYPE_CHOICES, default=PAID_CASUAL)
     start_date = models.DateField()
     end_date = models.DateField()
     reason = models.TextField(blank=True)

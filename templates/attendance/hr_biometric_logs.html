@@ -149,9 +149,15 @@
                             <td>
 
                                 {% if log.status == "IN" %}
-                                    <span class="badge bg-success">
-                                        Check In
-                                    </span>
+                                    {% if log.device_id == 'HR_APPROVED_LEAVE' %}
+                                        <span class="badge bg-success">
+                                            Check In (Leave)
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success">
+                                            Check In
+                                        </span>
+                                    {% endif %}
 
                                 {% elif log.status == "OUT" %}
                                     <span class="badge bg-danger">
@@ -191,7 +197,11 @@
                                 {% if log.marked_by_hr and log.hr_reason %}
 
                                     <div class="fw-semibold text-primary">
-                                        HR Marked
+                                        {% if log.device_id == 'HR_APPROVED_LEAVE' %}
+                                            Leave Marked Present
+                                        {% else %}
+                                            HR Marked
+                                        {% endif %}
                                     </div>
 
                                     <div>

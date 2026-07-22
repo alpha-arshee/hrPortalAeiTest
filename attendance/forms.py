@@ -7,15 +7,23 @@ from accounts.models import User
 from django.db import DatabaseError
 
 class LeaveRequestForm(forms.ModelForm):
+    leave_type = forms.ChoiceField(
+        choices=[
+            ('paid_casual', 'Paid Casual Leave'),
+            ('paid_sick', 'Paid Sick Leave'),
+            ('paid_privilege', 'Paid Privilege Leave'),
+            ('unpaid', 'Unpaid Leave'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
     class Meta:
         model = Leave
-        # include leave_type so the form renders a dropdown for paid/unpaid
         fields = ['start_date', 'end_date', 'reason', 'leave_type', 'supporting_document', 'contact_during_leave']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'reason': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
-            'leave_type': forms.Select(attrs={'class': 'form-select'}),
             'contact_during_leave': forms.TextInput(attrs={'class': 'form-control'}),
             'supporting_document': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }

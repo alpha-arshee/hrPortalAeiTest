@@ -222,7 +222,7 @@
     </div>
     <div class="summary-card amber">
       <div class="s-val">{{ leave_days }}</div>
-      <div class="s-lbl">Leave</div>
+      <div class="s-lbl">Unpaid Leave</div>
     </div>
     <div class="summary-card red">
       <div class="s-val">{{ absent_days }}</div>
@@ -277,7 +277,11 @@
             <td>{{ l.punch_time }}</td>
             <td>
               {% if l.status == 'IN' %}
-                <span class="badge badge-green"><i class="fas fa-sign-in-alt"></i> IN</span>
+                {% if l.device_id == 'HR_APPROVED_LEAVE' %}
+                  <span class="badge badge-green"><i class="fas fa-sign-in-alt"></i> IN (Leave)</span>
+                {% else %}
+                  <span class="badge badge-green"><i class="fas fa-sign-in-alt"></i> IN</span>
+                {% endif %}
               {% elif l.status == 'OUT' %}
                 <span class="badge badge-red"><i class="fas fa-sign-out-alt"></i> OUT</span>
               {% else %}
@@ -287,7 +291,11 @@
             <td>
               {% if l.marked_by_hr and l.hr_reason %}
                 <div class="hr-note">
-                  <span class="badge badge-blue" style="margin-bottom:3px;"><i class="fas fa-user-shield"></i> HR</span>
+                  {% if l.device_id == 'HR_APPROVED_LEAVE' %}
+                    <span class="badge badge-blue" style="margin-bottom:3px;"><i class="fas fa-user-shield"></i> Leave</span>
+                  {% else %}
+                    <span class="badge badge-blue" style="margin-bottom:3px;"><i class="fas fa-user-shield"></i> HR</span>
+                  {% endif %}
                   {{ l.hr_reason }}
                   <div class="by">
                     by {{ l.marked_by.get_full_name|default:l.marked_by.username }}

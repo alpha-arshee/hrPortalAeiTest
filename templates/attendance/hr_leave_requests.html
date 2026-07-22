@@ -217,7 +217,7 @@
                             <td>
 
                                 <span class="badge bg-info">
-                                    {{ lv.leave_type|capfirst }}
+                                    {{ lv.get_leave_type_display }}
                                 </span>
 
                             </td>
@@ -242,7 +242,7 @@
                                 </a>
 
                                 {% else %}
-                                -
+                                        {{ lv.get_leave_type_display }}
                                 {% endif %}
 
                             </td>

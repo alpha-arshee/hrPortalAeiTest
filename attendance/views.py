@@ -23,6 +23,32 @@ from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)
 
+PAID_LEAVE_TYPES = {
+    'paid_casual',
+    'paid_sick',
+    'paid_privilege',
+    'paid',
+}
+
+
+def _create_leave_biometric_log(leave, requested_date, approved_by):
+    """Create a biometric record for an approved paid leave day."""
+    punch_time = timezone.localtime(timezone.now()).time().replace(microsecond=0).isoformat(timespec='seconds')
+    BiometricLog.objects.create(
+        employee_id=leave.user.employee_id or leave.user.username,
+        user=leave.user,
+        first_name=leave.user.first_name,
+        department=leave.user.department or 'N/A',
+        punch_date=requested_date,
+        punch_time=punch_time,
+        status='IN',
+        device_id='HR_APPROVED_LEAVE',
+        marked_by_hr=True,
+        hr_reason=f'Approved leave: {leave.get_leave_type_display()}',
+        marked_by=approved_by,
+        marked_at=timezone.now(),
+    )
+
 # Create your views here.
 
 @login_required
@@ -144,7 +170,7 @@ def request_leave(request):
         current_year = today.year
         try:
             quota = LeaveQuota.objects.get(user=request.user, year=current_year)
-            left_paid_leaves = max((quota.total_paid_leaves or 0) - (quota.used_paid_leaves or 0), 0)
+            left_paid_leaves = quota.remaining_paid_leaves
             left_unpaid_leaves = max((quota.total_unpaid_leaves or 0) - (quota.used_unpaid_leaves or 0), 0)
         except LeaveQuota.DoesNotExist:
             left_paid_leaves = 0
@@ -168,7 +194,7 @@ def request_leave(request):
                 except Exception:
                     requested_days = None
 
-                if lt == 'paid' and requested_days is not None and requested_days > (left_paid_leaves or 0):
+                if lt in PAID_LEAVE_TYPES and requested_days is not None and requested_days > (left_paid_leaves or 0):
                     messages.error(request, f'Not enough paid leaves left ({left_paid_leaves}). You requested {requested_days} days.')
                 elif lt == 'unpaid' and requested_days is not None and requested_days > (left_unpaid_leaves or 0):
                     # optional: restrict unpaid too — currently mirror paid behavior
@@ -312,11 +338,16 @@ def approve_leave(request, leave_id):
                         'used_unpaid_leaves': 0,
                     }
                 )
-                if leave.leave_type == 'paid':
-                    quota.used_paid_leaves = (quota.used_paid_leaves or 0) + days
-                else:
-                    quota.used_unpaid_leaves = (quota.used_unpaid_leaves or 0) + days
+                quota.register_leave_usage(leave.leave_type, days)
                 quota.save()
+
+            # For paid leave, create biometric rows so the employee is shown as present.
+            if leave.leave_type in PAID_LEAVE_TYPES:
+                from datetime import timedelta
+                current_day = start
+                while current_day <= end:
+                    _create_leave_biometric_log(leave, current_day, request.user)
+                    current_day = current_day + timedelta(days=1)
 
             # mark the leave as approved
             leave.status = 'approved'
@@ -1011,11 +1042,14 @@ def employee_attendance_detail_view(request, user_id):
         overtime_total_hours = Decimal('0.00')
         overtime_total_compensation = Decimal('0.00')
 
-    # approved leave days overlapping the period
+    # unpaid approved leave days still reduce attendance; paid leave is represented
+    # as a present biometric check-in and should not be subtracted here.
     leave_days = 0
     try:
         user_leaves = Leave.objects.filter(user=user, status='approved', start_date__lte=period_end, end_date__gte=period_start)
         for lv in user_leaves:
+            if lv.leave_type in PAID_LEAVE_TYPES:
+                continue
             overlap_start = max(lv.start_date, period_start)
             overlap_end = min(lv.end_date, period_end)
             if overlap_end >= overlap_start:
