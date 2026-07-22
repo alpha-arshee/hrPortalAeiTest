@@ -9,9 +9,9 @@ from django.db import DatabaseError
 class LeaveRequestForm(forms.ModelForm):
     leave_type = forms.ChoiceField(
         choices=[
-            ('paid_casual', 'Paid Casual Leave'),
-            ('paid_sick', 'Paid Sick Leave'),
-            ('paid_privilege', 'Paid Privilege Leave'),
+            ('casual', 'Casual Leave'),
+            ('sick', 'Sick Leave'),
+            ('privilege', 'Privilege Leave'),
             # ('unpaid', 'Unpaid Leave'),
         ],
         widget=forms.Select(attrs={'class': 'form-select'})

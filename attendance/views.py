@@ -24,9 +24,9 @@ from django.views.decorators.http import require_http_methods
 logger = logging.getLogger(__name__)
 
 PAID_LEAVE_TYPES = {
-    'paid_casual',
-    'paid_sick',
-    'paid_privilege',
+    'casual',
+    'sick',
+    'privilege',
     'paid',
 }
 

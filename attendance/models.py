@@ -5,9 +5,9 @@ import logging
 
 class LeaveQuota(models.Model):
     PAID_LEAVE_TYPE_FIELD_MAP = {
-        'paid_casual': 'paid_leave_use_as_causual_leaves',
-        'paid_sick': 'paid_leave_use_as_sick_leaves',
-        'paid_privilege': 'paid_leave_use_as_privilege_leaves',
+        'casual': 'paid_leave_use_as_causual_leaves',
+        'sick': 'paid_leave_use_as_sick_leaves',
+        'privilege': 'paid_leave_use_as_privilege_leaves',
     }
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -55,21 +55,21 @@ class AttendanceRecord(models.Model):
         return f"{self.user.username} - {self.date}"
 
 class Leave(models.Model):
-    PAID_CASUAL = 'paid_casual'
-    PAID_SICK = 'paid_sick'
-    PAID_PRIVILEGE = 'paid_privilege'
+    casual = 'casual'
+    sick = 'sick'
+    privilege = 'privilege'
     LEGACY_PAID = 'paid'
 
     LEAVE_TYPE_CHOICES = [
-        (PAID_CASUAL, 'Paid Casual Leave'),
-        (PAID_SICK, 'Paid Sick Leave'),
-        (PAID_PRIVILEGE, 'Paid Privilege Leave'),
+        (casual, 'Casual Leave'),
+        (sick, 'Sick Leave'),
+        (privilege, 'Privilege Leave'),
         (LEGACY_PAID, 'Paid Leave'),
         ('unpaid', 'Unpaid Leave'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    leave_type = models.CharField(max_length=20, choices=LEAVE_TYPE_CHOICES, default=PAID_CASUAL)
+    leave_type = models.CharField(max_length=20, choices=LEAVE_TYPE_CHOICES, default=casual)
     start_date = models.DateField()
     end_date = models.DateField()
     reason = models.TextField(blank=True)
