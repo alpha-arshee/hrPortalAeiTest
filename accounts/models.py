@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 from django.core.validators import RegexValidator
 
+DEFAULT_DEPARTMENTS = []
+
 class CustomUserManager(BaseUserManager):
     """Custom user manager for MongoDB"""
     def create_user(self, username, email=None, password=None, **extra_fields):
@@ -95,6 +97,50 @@ class User(AbstractUser):
         parts = [self.first_name or '', self.middle_name or '', self.last_name or '']
         # filter out empty parts and join with spaces
         return ' '.join([p for p in parts if p]).strip()
+
+class commonInfo(models.Model):
+    departments = models.TextField(
+        blank=True,
+        default=', '.join(DEFAULT_DEPARTMENTS),
+        help_text='Enter department names separated by commas.'
+    )
+
+    class Meta:
+        verbose_name = 'Common information'
+        verbose_name_plural = 'Common information'
+
+    def __str__(self):
+        departments = self.get_department_list()
+        return ', '.join(departments) if departments else 'No departments configured'
+
+    @staticmethod
+    def _split_departments(value):
+        if not value:
+            return []
+        if isinstance(value, (list, tuple)):
+            raw_departments = value
+        else:
+            raw_departments = str(value).split(',')
+        cleaned_departments = []
+        for department in raw_departments:
+            department_name = str(department).strip()
+            if department_name and department_name not in cleaned_departments:
+                cleaned_departments.append(department_name)
+        return cleaned_departments
+
+    def get_department_list(self):
+        return self._split_departments(self.departments)
+
+    def set_department_list(self, departments):
+        self.departments = ', '.join(self._split_departments(departments))
+
+    @classmethod
+    def get_department_choices(cls):
+        common_info = cls.objects.first()
+        departments = common_info.get_department_list() if common_info else []
+        if not departments:
+            departments = DEFAULT_DEPARTMENTS
+        return [(department, department) for department in departments]
 
 
 class EmployeeProfile(models.Model):

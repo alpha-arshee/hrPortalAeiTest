@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.exceptions import ValidationError
-from .models import User, EmployeeProfile
+from .models import User, EmployeeProfile, commonInfo
 from payroll.models import EmployeePayrollDetails
 from attendance.models import LeaveQuota
 from decimal import Decimal
@@ -10,6 +10,34 @@ import datetime
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _get_department_choices():
+    try:
+        return commonInfo.get_department_choices()
+    except Exception:
+        return [(department, department) for department in []]
+
+
+def _apply_department_choices(form, field_name='department'):
+    field = form.fields.get(field_name)
+    if field is None:
+        return
+
+    choices = list(_get_department_choices())
+    current_value = ''
+    if getattr(form, 'instance', None) is not None:
+        current_value = getattr(form.instance, field_name, '') or ''
+
+    existing_choice_values = {choice_value for choice_value, _ in choices}
+    if current_value and current_value not in existing_choice_values:
+        choices.append((current_value, current_value))
+
+    field.choices = [('', 'Select department')] + choices
+    try:
+        field.widget.choices = field.choices
+    except Exception:
+        pass
 
 
 def _normalize_ctc(value):
@@ -113,10 +141,10 @@ class UserRegistrationForm(UserCreationForm):
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
-    department = forms.CharField(
-        max_length=100,
+    department = forms.ChoiceField(
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        choices=(),
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     date_of_joining = forms.DateField(
         required=False,
@@ -147,6 +175,8 @@ class UserRegistrationForm(UserCreationForm):
         super().__init__(*args, **kwargs)
         self.fields['password1'].widget.attrs.update({'class': 'form-control'})
         self.fields['password2'].widget.attrs.update({'class': 'form-control'})
+        _apply_department_choices(self)
+        self.fields['department'].widget.attrs.update({'class': 'form-select'})
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -261,7 +291,7 @@ class ProfileUpdateForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'department': forms.TextInput(attrs={'class': 'form-control'}),
+            'department': forms.Select(attrs={'class': 'form-select'}),
             # Provide a stable id and accept image types so the template JS
             # can reliably find and trigger the file input.
             'profile_picture': forms.FileInput(attrs={'class': 'form-control', 'id': 'id_profile_picture', 'accept': 'image/*'}),
@@ -284,6 +314,8 @@ class ProfileUpdateForm(forms.ModelForm):
 
         kwargs['initial'] = initial
         super().__init__(*args, **kwargs)
+        _apply_department_choices(self)
+        self.fields['department'].widget.attrs.update({'class': 'form-select'})
         # populate user-level fields if instance provided (only addhar_id for employees)
         if getattr(self, 'instance', None):
             try:
@@ -533,7 +565,7 @@ class HRUserManagementForm(forms.ModelForm):
             'employee_id': forms.TextInput(attrs={'class': 'form-control'}),
             'emp_code': forms.TextInput(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'department': forms.TextInput(attrs={'class': 'form-control'}),
+            'department': forms.Select(attrs={'class': 'form-select'}),
             'date_of_joining': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -570,6 +602,8 @@ class HRUserManagementForm(forms.ModelForm):
         # be a single instance (latest) or None.
         self.payroll_details = kwargs.pop('payroll_details', None)
         super().__init__(*args, **kwargs)
+        _apply_department_choices(self)
+        self.fields['department'].widget.attrs.update({'class': 'form-select'})
         
         if self.employee_profile:
             self.fields['emergency_contact'].initial = self.employee_profile.emergency_contact
@@ -826,6 +860,26 @@ class HRUserManagementForm(forms.ModelForm):
             except Exception:
                 pass
         return dob
+
+
+class DepartmentSettingsForm(forms.ModelForm):
+    departments = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'office, engineer, testing'
+        }),
+        help_text='Enter departments separated by commas.'
+    )
+
+    class Meta:
+        model = commonInfo
+        fields = ('departments',)
+
+    def clean_departments(self):
+        departments = self.cleaned_data.get('departments', '')
+        return ', '.join(commonInfo._split_departments(departments))
 
 
 class CustomPasswordResetForm(PasswordResetForm):

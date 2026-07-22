@@ -68,6 +68,7 @@ urlpatterns = [
     
     # HR Admin URLs
     path('employees/', views.employee_management, name='employee_management'),
+    path('department-settings/', views.department_settings, name='department_settings'),
     path('employee/<int:user_id>/', views.edit_employee_detail, name='edit_employee_detail'),
     path('employee_detail/<int:user_id>/', views.employee_detail, name='employee_detail'),
     path('user_details/<int:user_id>/', views.user_details, name='user_details'),

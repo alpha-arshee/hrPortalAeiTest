@@ -16,10 +16,10 @@ import json
 import calendar
 from payroll.models import EmployeePayrollDetails
 from attendance.models import LeaveQuota
-from .models import BankingInfo, TaxInfo, User, EmployeeProfile, LoginAttempt
+from .models import BankingInfo, TaxInfo, User, EmployeeProfile, LoginAttempt, commonInfo
 from .forms import (
-    UserRegistrationForm, UserLoginForm, ProfileUpdateForm, 
-    HRUserManagementForm
+    UserRegistrationForm, UserLoginForm, ProfileUpdateForm,
+    HRUserManagementForm, DepartmentSettingsForm
 )
 from .decorators import hr_admin_required
 from django.core.files.storage import default_storage
@@ -682,6 +682,35 @@ def employee_management(request):
         'search_query': search_query,
         'status_filter': status_filter,
         'role_filter': role_filter,
+    })
+
+
+@login_required
+@hr_admin_required
+def department_settings(request):
+    """HR Admin: manage the shared department list used across dropdowns."""
+    try:
+        common_info = commonInfo.objects.first()
+        if common_info is None:
+            common_info = commonInfo.objects.create()
+    except Exception:
+        common_info = commonInfo()
+
+    if request.method == 'POST':
+        form = DepartmentSettingsForm(request.POST, instance=common_info)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Department list updated successfully!')
+            return redirect('accounts:department_settings')
+    else:
+        form = DepartmentSettingsForm(instance=common_info)
+
+    department_choices = commonInfo.get_department_choices()
+    department_list = [choice[0] for choice in department_choices]
+
+    return render(request, 'accounts/commonInfo.html', {
+        'form': form,
+        'department_list': department_list,
     })
 
 

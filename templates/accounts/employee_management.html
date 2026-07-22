@@ -283,9 +283,14 @@
   <!-- Header -->
   <div class="em-header">
     <h1><i class="fas fa-users"></i> Employee Management</h1>
-    <a href="{% url 'accounts:analytics' %}" class="btn-analytics">
-      <i class="fas fa-chart-line"></i> Analytics
-    </a>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="{% url 'accounts:department_settings' %}" class="btn-analytics">
+        <i class="fas fa-sitemap"></i> Departments
+      </a>
+      <a href="{% url 'accounts:analytics' %}" class="btn-analytics">
+        <i class="fas fa-chart-line"></i> Analytics
+      </a>
+    </div>
   </div>
 
   <!-- Filters -->
