@@ -755,9 +755,9 @@ def reject_employee(request, user_id):
         user.save()
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': True, 'message': 'Employee account disabled!'})
+            return JsonResponse({'success': True, 'message': 'Employee account resigned!'})
         
-        messages.success(request, f'Employee {user.username} account disabled!')
+        messages.success(request, f'Employee {user.username} account resigned!')
         return redirect('accounts:employee_management')
     except User.DoesNotExist:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -766,8 +766,8 @@ def reject_employee(request, user_id):
         return redirect('accounts:employee_management')
     except Exception as e:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'message': 'Error disabling employee!'})
-        messages.error(request, 'Error disabling employee.')
+            return JsonResponse({'success': False, 'message': 'Error resigning employee!'})
+        messages.error(request, 'Error resigning employee.')
         return redirect('accounts:employee_management')
 
 
