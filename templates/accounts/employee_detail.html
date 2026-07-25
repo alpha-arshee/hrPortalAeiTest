@@ -250,7 +250,7 @@
             {% if employee.is_active %}
             <span class="badge badge-success">Active</span>
             {% else %}
-            <span class="badge badge-secondary">Inactive</span>
+            <span class="badge badge-danger">Resigned</span>
             {% endif %}
         </div>
         <div class="action-buttons" style="margin-left:auto;">
@@ -264,6 +264,29 @@
                     <i class="fas fa-trash"></i>Delete
                 </button>
             </form>
+            {% endif %}
+            {% if user.is_hr_admin %}
+            <!-- Approve -->
+                  {% if not employee.is_approved %}
+                  <div class="action-btn approve" title="Approve employee">
+                    <form method="post" action="{% url 'accounts:reactivate_employee' employee.id %}">
+                      {% csrf_token %}
+                      <button type="submit"><i class="fas fa-check"></i></button>
+                    </form>
+                  </div>
+                  {% endif %}
+
+                  <!-- Disable -->
+                  {% if employee.is_active %}
+                  <div class="action-btn disable" title=" Resigned account">
+                    <form method="post" action="{% url 'accounts:reject_employee' employee.id %}">
+                      {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-ban"></i>Resigned
+                        </button>
+                    </form>
+                  </div>
+                  {% endif %}
             {% endif %}
         </div>
     </div>

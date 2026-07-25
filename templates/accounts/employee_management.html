@@ -393,11 +393,9 @@
                 <div style="display:flex;flex-direction:column;gap:4px;">
                   {% if employee.is_approved %}
                     <span class="badge badge-green"><i class="fas fa-check-circle"></i> Approved</span>
-                  {% else %}
-                    <span class="badge badge-amber"><i class="fas fa-clock"></i> Pending</span>
                   {% endif %}
                   {% if not employee.is_active %}
-                    <span class="badge badge-red"><i class="fas fa-ban"></i> Inactive</span>
+                    <span class="badge badge-red"><i class="fas fa-ban"></i>Resigned</span>
                   {% endif %}
                 </div>
               </td>
@@ -411,7 +409,7 @@
                     <i class="fas fa-eye"></i>
                   </a>
 
-                  <!-- Approve -->
+                  {% comment %} <!-- Approve -->
                   {% if not employee.is_approved %}
                   <div class="action-btn approve" title="Approve employee">
                     <form method="post" action="{% url 'accounts:reactivate_employee' employee.id %}">
@@ -430,6 +428,7 @@
                     </form>
                   </div>
                   {% endif %}
+                   {% endcomment %}
                 </div>
               </td>
             </tr>
