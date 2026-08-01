@@ -1,44 +1,210 @@
 {% extends 'base.html' %}
 
+{% block title %}Advance Request #{{ request_obj.id }}{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <h2>Advance Request #{{ request_obj.id }}</h2>
+<div class="container py-4">
 
-  <div class="card">
-    <div class="card-body">
-      <p><strong>User:</strong> {{ request_obj.user.get_full_name|default:request_obj.user.username }}</p>
-      <p><strong>Amount:</strong> {{ request_obj.amount }}</p>
-      <p><strong>Reason:</strong><br>{{ request_obj.reason|linebreaksbr }}</p>
-      <p><strong>Status:</strong>
-        {% if request_obj.status == 'approved' %}
-          <span class="badge bg-success">{{ request_obj.get_status_display }}</span>
-        {% elif request_obj.status == 'pending' %}
-          <span class="badge bg-warning text-dark">{{ request_obj.get_status_display }}</span>
-        {% elif request_obj.status == 'rejected' %}
-          <span class="badge bg-danger">{{ request_obj.get_status_display }}</span>
-        {% else %}
-          {{ request_obj.get_status_display }}
-        {% endif %}
-      </p>
-      <p><strong>Requested On:</strong> {{ request_obj.request_date }}</p>
-      <p><strong>Decision On:</strong> {{ request_obj.decision_date|default:'—' }}</p>
-      <p><strong>Decisioned By:</strong>
-        {% if request_obj.approver %}
-          {{ request_obj.approver.get_full_name|default:request_obj.approver.username }}
-          {% if request_obj.approver.designation %}
-            <small class="text-muted">— {{ request_obj.approver.designation }}</small>
-          {% endif %}
-        {% else %}
-          —
-        {% endif %}
-      </p>
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+        <div>
+            <h2 class="mb-1">Advance Salary Request</h2>
+            <p class="text-muted mb-0">
+                Request #{{ request_obj.id }}
+            </p>
+        </div>
 
-      {% if user.is_authenticated and user.is_hr_admin %}
-        <a href="{% url 'payroll:hr_requests_list' %}" class="btn btn-secondary">Back</a>
-      {% else %}
-        <a href="{% url 'payroll:advance_salary_request' %}" class="btn btn-secondary">Back</a>
-      {% endif %}
+        <div>
+            {% if request_obj.status == 'approved' %}
+                <span class="badge bg-success fs-6 px-3 py-2">
+                    Approved
+                </span>
+            {% elif request_obj.status == 'pending' %}
+                <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                    Pending
+                </span>
+            {% elif request_obj.status == 'rejected' %}
+                <span class="badge bg-danger fs-6 px-3 py-2">
+                    Rejected
+                </span>
+            {% else %}
+                <span class="badge bg-secondary fs-6 px-3 py-2">
+                    {{ request_obj.get_status_display }}
+                </span>
+            {% endif %}
+        </div>
     </div>
-  </div>
+
+
+    <!-- Request Information -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <strong>
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Request Details
+                </strong>
+
+                <span class="small">
+                    #{{ request_obj.id }}
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <!-- Employee -->
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="text-muted small mb-1">
+                            Employee
+                        </div>
+
+                        <div class="fw-semibold">
+                            {{ request_obj.user.get_full_name|default:request_obj.user.username }}
+                        </div>
+
+                        {% if request_obj.user.employee_id %}
+                            <small class="text-muted">
+                                Employee ID: {{ request_obj.user.employee_id }}
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+
+
+                <!-- Amount -->
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="text-muted small mb-1">
+                            Requested Amount
+                        </div>
+
+                        <div class="fs-4 fw-bold text-primary">
+                            ₹{{ request_obj.amount }}
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Request Date -->
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="text-muted small mb-1">
+                            Requested On
+                        </div>
+
+                        <div class="fw-semibold">
+                            {{ request_obj.request_date|date:"d M Y, H:i" }}
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Decision Date -->
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <div class="text-muted small mb-1">
+                            Decision On
+                        </div>
+
+                        <div class="fw-semibold">
+                            {% if request_obj.decision_date %}
+                                {{ request_obj.decision_date|date:"d M Y, H:i" }}
+                            {% else %}
+                                <span class="text-muted">Not decided yet</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Reason -->
+                <div class="col-12">
+                    <div class="border rounded p-3">
+                        <div class="text-muted small mb-2">
+                            Reason
+                        </div>
+
+                        <div>
+                            {% if request_obj.reason %}
+                                {{ request_obj.reason|linebreaksbr }}
+                            {% else %}
+                                <span class="text-muted">
+                                    No reason provided.
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Approver -->
+                <div class="col-12">
+                    <div class="border rounded p-3">
+                        <div class="text-muted small mb-1">
+                            Decisioned By
+                        </div>
+
+                        {% if request_obj.approver %}
+
+                            <div class="fw-semibold">
+                                {{ request_obj.approver.get_full_name|default:request_obj.approver.username }}
+                            </div>
+
+                            {% if request_obj.approver.employee_id %}
+                                <small class="text-muted">
+                                    Employee ID: {{ request_obj.approver.employee_id }}
+                                </small>
+                            {% endif %}
+
+                            {% if request_obj.approver.designation %}
+                                <div class="small text-muted mt-1">
+                                    {{ request_obj.approver.designation }}
+                                </div>
+                            {% endif %}
+
+                        {% else %}
+
+                            <span class="text-muted">
+                                No decision has been made yet.
+                            </span>
+
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- Footer -->
+        <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+
+            <span class="small text-muted">
+                Advance Salary Request
+            </span>
+
+            {% if user.is_authenticated and user.is_hr_admin %}
+                <a href="{% url 'payroll:hr_requests_list' %}"
+                   class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Back
+                </a>
+            {% else %}
+                <a href="{% url 'payroll:advance_salary_request' %}"
+                   class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Back
+                </a>
+            {% endif %}
+
+        </div>
+
+    </div>
+
 </div>
 {% endblock %}

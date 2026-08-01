@@ -1,84 +1,509 @@
 {% extends 'base.html' %}
 
+{% block title %}Request Advance Salary{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <h2>Request Advance Salary</h2>
 
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
+<div class="container-fluid py-4">
 
-  <div class="card mb-4">
-    <div class="card-body">
-      <form method="post" novalidate>
-        {% csrf_token %}
-        {{ advancesalaryrequestform.non_field_errors }}
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4">
 
-        <div class="mb-3">
-          <label for="id_amount" class="form-label">Amount</label>
-          {{ advancesalaryrequestform.amount }}
-          {% if advancesalaryrequestform.amount.errors %}
-            <div class="text-danger small">{{ advancesalaryrequestform.amount.errors|join:", " }}</div>
-          {% endif %}
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fas fa-hand-holding-usd text-primary me-2"></i>
+                Request Advance Salary
+            </h2>
+
+            <p class="text-muted mb-0">
+                Submit a request for an advance salary and track its status.
+            </p>
         </div>
 
-        <div class="mb-3">
-          <label for="id_reason" class="form-label">Reason</label>
-          {{ advancesalaryrequestform.reason }}
-          {% if advancesalaryrequestform.reason.errors %}
-            <div class="text-danger small">{{ advancesalaryrequestform.reason.errors|join:", " }}</div>
-          {% endif %}
+        <a href="{% url 'payroll:user_payroll_dashboard' %}"
+           class="btn btn-outline-secondary mt-3 mt-lg-0">
+            <i class="fas fa-arrow-left me-2"></i>
+            Back to Payroll
+        </a>
+
+    </div>
+
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                     role="alert">
+
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% endif %}
+
+                    {{ message }}
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close">
+                    </button>
+
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+
+    <div class="row g-4">
+
+        <!-- Request Form -->
+        <div class="col-12 col-lg-5">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-invoice-dollar me-2"></i>
+                        New Advance Request
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <form method="post" novalidate>
+
+                        {% csrf_token %}
+
+                        {% if advancesalaryrequestform.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in advancesalaryrequestform.non_field_errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+
+                        <!-- Amount -->
+                        <div class="mb-4">
+
+                            <label for="id_amount" class="form-label fw-semibold">
+                                Amount
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    ₹
+                                </span>
+
+                                {{ advancesalaryrequestform.amount }}
+
+                            </div>
+
+                            {% if advancesalaryrequestform.amount.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in advancesalaryrequestform.amount.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <div class="form-text">
+                                Enter the amount you want to request as salary advance.
+                            </div>
+
+                        </div>
+
+
+                        <!-- Reason -->
+                        <div class="mb-4">
+
+                            <label for="id_reason" class="form-label fw-semibold">
+                                Reason
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            {{ advancesalaryrequestform.reason }}
+
+                            {% if advancesalaryrequestform.reason.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in advancesalaryrequestform.reason.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <div class="form-text">
+                                Please provide a brief reason for your advance salary request.
+                            </div>
+
+                        </div>
+
+
+                        <!-- Buttons -->
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Submit Request
+
+                            </button>
+
+                            <a href="{% url 'payroll:user_payroll_dashboard' %}"
+                               class="btn btn-light border">
+
+                                <i class="fas fa-times me-2"></i>
+                                Cancel
+
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
         </div>
 
-        <button type="submit" class="btn btn-primary">Submit Request</button>
-        <a href="{% url 'payroll:user_payroll_dashboard' %}" class="btn btn-secondary ms-2">Cancel</a>
-      </form>
-    </div>
-  </div>
 
-  <h4>Your Advance Requests</h4>
-  {% if advancesalaryrequestlist and advancesalaryrequestlist.count > 0 %}
-    <div class="table-responsive mt-2">
-      <table class="table table-sm table-bordered">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Requested On</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for req in advancesalaryrequestlist %}
-          <tr>
-            <td>{{ req.id }}</td>
-            <td>{{ req.amount }}</td>
-            <td>
-              {% if req.status == 'approved' %}
-                <span class="badge bg-success">{{ req.get_status_display }}</span>
-              {% elif req.status == 'pending' %}
-                <span class="badge bg-warning text-dark">{{ req.get_status_display }}</span>
-              {% elif req.status == 'rejected' %}
-                <span class="badge bg-danger">{{ req.get_status_display }}</span>
-              {% else %}
-                {{ req.get_status_display }}
-              {% endif %}
-            </td>
-            <td>{{ req.request_date }}</td>
-            <td>
-              <a href="{% url 'payroll:advance_request_status' req.id %}" class="btn btn-sm btn-outline-primary">View</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+        <!-- Information Card -->
+        <div class="col-12 col-lg-7">
+
+            <div class="card border-0 shadow-sm mb-4">
+
+                <div class="card-header bg-white py-3">
+
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Advance Salary
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="d-flex gap-3 mb-3">
+
+                        <div class="info-icon bg-primary-subtle text-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+
+                        <div>
+                            <h6 class="fw-semibold mb-1">
+                                Submit Request
+                            </h6>
+
+                            <p class="text-muted mb-0 small">
+                                Enter the required amount and provide a reason
+                                before submitting your request.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="d-flex gap-3 mb-3">
+
+                        <div class="info-icon bg-warning-subtle text-warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+
+                        <div>
+                            <h6 class="fw-semibold mb-1">
+                                HR Review
+                            </h6>
+
+                            <p class="text-muted mb-0 small">
+                                Your request will remain pending until it is
+                                reviewed by the authorized person.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="d-flex gap-3">
+
+                        <div class="info-icon bg-success-subtle text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+
+                        <div>
+                            <h6 class="fw-semibold mb-1">
+                                Track Status
+                            </h6>
+
+                            <p class="text-muted mb-0 small">
+                                You can view the status of every submitted
+                                advance salary request below.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Request History -->
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-white py-3">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <h5 class="mb-1 fw-bold">
+                                <i class="fas fa-history text-primary me-2"></i>
+                                Your Advance Requests
+                            </h5>
+
+                            <small class="text-muted">
+                                Previously submitted requests
+                            </small>
+                        </div>
+
+                        {% if advancesalaryrequestlist %}
+                            <span class="badge bg-light text-dark border">
+                                {{ advancesalaryrequestlist|length }}
+                                Request{{ advancesalaryrequestlist|length|pluralize }}
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-body p-0">
+
+                    {% if advancesalaryrequestlist %}
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle mb-0">
+
+                                <thead class="table-light">
+
+                                    <tr>
+                                        <th class="ps-4">#</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Requested On</th>
+                                        <th class="text-center pe-4">Action</th>
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    {% for req in advancesalaryrequestlist %}
+
+                                    <tr>
+
+                                        <td class="ps-4">
+                                            <span class="text-muted">
+                                                {{ forloop.counter }}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <strong>
+                                                ₹ {{ req.amount}}
+                                            </strong>
+                                        </td>
+
+                                        <td>
+
+                                            {% if req.status == 'approved' %}
+
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>
+                                                    {{ req.get_status_display }}
+                                                </span>
+
+                                            {% elif req.status == 'pending' %}
+
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ req.get_status_display }}
+                                                </span>
+
+                                            {% elif req.status == 'rejected' %}
+
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times me-1"></i>
+                                                    {{ req.get_status_display }}
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="badge bg-secondary">
+                                                    {{ req.get_status_display }}
+                                                </span>
+
+                                            {% endif %}
+
+                                        </td>
+
+                                        <td>
+
+                                            {% if req.request_date %}
+
+                                                <span>
+                                                    {{ req.request_date|date:"d M Y" }}
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="text-muted">-</span>
+
+                                            {% endif %}
+
+                                        </td>
+
+                                        <td class="text-center pe-4">
+
+                                            <a href="{% url 'payroll:advance_request_status' req.id %}"
+                                               class="btn btn-sm btn-outline-primary">
+
+                                                <i class="fas fa-eye me-1"></i>
+                                                View
+
+                                            </a>
+
+                                        </td>
+
+                                    </tr>
+
+                                    {% endfor %}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    {% else %}
+
+                        <!-- Empty State -->
+
+                        <div class="text-center py-5 px-3">
+
+                            <div class="empty-icon mb-3">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+
+                            <h5 class="fw-semibold">
+                                No Advance Requests
+                            </h5>
+
+                            <p class="text-muted mb-0">
+                                You have not submitted any advance salary
+                                requests yet.
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  {% else %}
-    <p class="text-muted">You have not submitted any advance requests yet.</p>
-  {% endif %}
 
 </div>
+
+
+<style>
+
+.card {
+    border-radius: 14px;
+}
+
+.card-header {
+    border-radius: 14px 14px 0 0 !important;
+}
+
+.form-control,
+.form-select {
+    min-height: 45px;
+    border-radius: 10px;
+}
+
+textarea.form-control {
+    min-height: 120px;
+}
+
+.input-group .form-control {
+    border-radius: 0 10px 10px 0;
+}
+
+.input-group-text {
+    border-radius: 10px 0 0 10px;
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.btn {
+    border-radius: 10px;
+    padding: .6rem 1.2rem;
+}
+
+.table th {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.table td {
+    font-size: 14px;
+}
+
+.info-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 17px;
+}
+
+.empty-icon {
+    width: 70px;
+    height: 70px;
+    margin: auto;
+
+    border-radius: 50%;
+
+    background: #f1f3f5;
+    color: #6c757d;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 28px;
+}
+
+</style>
+
 {% endblock %}

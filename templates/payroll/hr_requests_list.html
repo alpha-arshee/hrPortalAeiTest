@@ -1,113 +1,649 @@
 {% extends 'base.html' %}
 
+{% block title %}Advance Salary Requests{% endblock %}
+{% block header %}Advance Salary Requests{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <h2>HR - Advance Salary Requests</h2>
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <form method="get" class="d-flex mb-2" style="gap:8px;">
-        <input type="hidden" name="status" value="{{ status }}">
-        {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
-        <input type="search" name="q" value="{{ q|default_if_none:'' }}" class="form-control form-control-sm"
-          placeholder="Search name">
-        <button class="btn btn-sm btn-primary" type="submit">Search</button>
-        <a href="?status={{ status }}" class="btn btn-sm btn-outline-secondary ms-2">Clear</a>
-      </form>
+<div class="container-fluid px-4 py-4">
+
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-cash-stack me-2"></i>
+                Advance Salary Requests
+            </h2>
+            <p class="text-muted mb-0">
+                Review and manage employee advance salary requests.
+            </p>
+        </div>
+
+        <!-- Status Filters -->
+        <div class="btn-group" role="group">
+
+            <a href="?status=pending"
+               class="btn {% if status == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <i class="bi bi-hourglass-split me-1"></i>
+                Pending
+            </a>
+
+            <a href="?status=approved"
+               class="btn {% if status == 'approved' %}btn-success{% else %}btn-outline-success{% endif %}">
+                <i class="bi bi-check-circle me-1"></i>
+                Approved
+            </a>
+
+            <a href="?status=rejected"
+               class="btn {% if status == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                <i class="bi bi-x-circle me-1"></i>
+                Rejected
+            </a>
+
+            <a href="?status=all"
+               class="btn {% if status == 'all' %}btn-dark{% else %}btn-outline-dark{% endif %}">
+                All
+            </a>
+
+        </div>
     </div>
-    <div>
-      <a href="?status=pending" class="btn btn-sm btn-outline-primary">Pending</a>
-      <a href="?status=approved" class="btn btn-sm btn-outline-success">Approved</a>
-      <a href="?status=rejected" class="btn btn-sm btn-outline-danger">Rejected</a>
-      <a href="?status=all" class="btn btn-sm btn-outline-secondary">All</a>
+
+
+    <!-- Search & Filter Card -->
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form method="get">
+
+                <input type="hidden" name="status" value="{{ status }}">
+
+                {% if sort %}
+                    <input type="hidden" name="sort" value="{{ sort }}">
+                {% endif %}
+
+                <div class="row g-2 align-items-end">
+
+                    <!-- Search -->
+                    <div class="col-md-5">
+
+                        <label class="form-label fw-semibold">
+                            Search Employee
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+
+                            <input
+                                type="search"
+                                name="q"
+                                value="{{ q|default_if_none:'' }}"
+                                class="form-control"
+                                placeholder="Search by employee name..."
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <!-- Search Button -->
+                    <div class="col-auto">
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>
+                            Search
+                        </button>
+
+                    </div>
+
+                    <!-- Clear -->
+                    <div class="col-auto">
+
+                        <a href="?status={{ status }}"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-clockwise me-1"></i>
+                            Clear
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
     </div>
 
-  </div>
 
-  {% if requests and requests.count > 0 %}
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>
-            User
-            <a href="?status={{ status }}&amp;sort=name" title="Sort by name asc" class="ms-2">↑</a>
-            <a href="?status={{ status }}&amp;sort=-name" title="Sort by name desc">↓</a>
-          </th>
-          <th>
-            ID
-            <a href="?status={{ status }}&amp;sort=id" title="Sort by ID asc" class="ms-2">↑</a>
-            <a href="?status={{ status }}&amp;sort=-id" title="Sort by ID desc">↓</a>
-          </th>
-          <th>Amount</th>
-          <th>Reason</th>
-          <th>Status</th>
-          <th>Requested On</th>
-          <th>Decision On</th>
-          <th>Approved By</th>
-          <th>Designation</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for req in requests %}
-        <tr>
-          <td>{{ forloop.counter }}</td>
-          <td>{{ req.user.get_full_name|default:req.user.username }}</td>
-          <td>{{ req.user.employee_id|default:'—' }}</td>
-          <td>{{ req.amount }}</td>
-          <td>{{ req.reason|truncatechars:60 }}</td>
-          <td>
-            {% if req.status == 'approved' %}
-            <span class="badge bg-success">{{ req.get_status_display }}</span>
-            {% elif req.status == 'pending' %}
-            <span class="badge bg-warning text-dark">{{ req.get_status_display }}</span>
-            {% elif req.status == 'rejected' %}
-            <span class="badge bg-danger">{{ req.get_status_display }}</span>
-            {% else %}
-            {{ req.get_status_display }}
-            {% endif %}
-          </td>
-          <td>{{ req.request_date }}</td>
-          <td>{{ req.decision_date|default:'—' }}</td>
-          <td>
-            {% if req.approver %}
-            {{ req.approver.get_full_name|default:req.approver.username }}
-            {% else %}
-            —
-            {% endif %}
-          </td>
-          <td>
-            {% if req.approver and req.approver.designation %}
-            {{ req.approver.designation }}
-            {% else %}
-            —
-            {% endif %}
-          </td>
-          <td>
-            {% if req.status == 'pending' %}
-            <form method="post" action="{% url 'payroll:approve_request' req.id %}" style="display:inline-block;">
-              {% csrf_token %}
-              <button class="btn btn-sm btn-success">Approve</button>
-            </form>
-            <form method="post" action="{% url 'payroll:reject_request' req.id %}"
-              style="display:inline-block; margin-left:6px;">
-              {% csrf_token %}
-              <button class="btn btn-sm btn-danger">Reject</button>
-            </form>
-            {% else %}
-            <a href="{% url 'payroll:advance_request_status' req.id %}" class="btn btn-sm btn-outline-primary">View</a>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <p>No requests found.</p>
-  {% endif %}
+    <!-- Summary -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <small class="text-muted">
+                                Total Requests
+                            </small>
+
+                            <h3 class="fw-bold mb-0">
+                                {% if requests %}
+                                    {{ requests.count }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </h3>
+                        </div>
+
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                            <i class="bi bi-file-earmark-text text-primary fs-4"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <small class="text-muted">
+                                Current Filter
+                            </small>
+
+                            <h5 class="fw-bold mb-0 text-capitalize">
+                                {{ status|default:"All" }}
+                            </h5>
+                        </div>
+
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                            <i class="bi bi-funnel text-warning fs-4"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <small class="text-muted">
+                                Request Management
+                            </small>
+
+                            <h6 class="fw-bold mb-0">
+                                HR Approval
+                            </h6>
+                        </div>
+
+                        <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                            <i class="bi bi-person-check text-success fs-4"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Requests Table -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h5 class="fw-bold mb-0">
+                        Salary Advance Requests
+                    </h5>
+
+                    <small class="text-muted">
+                        Employee requests requiring review or already processed.
+                    </small>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {% if requests and requests.count > 0 %}
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>
+                            Employee
+
+                            <a
+                                href="?status={{ status }}&sort=name"
+                                title="Sort ascending"
+                                class="text-decoration-none ms-1"
+                            >
+                                <i class="bi bi-arrow-up"></i>
+                            </a>
+
+                            <a
+                                href="?status={{ status }}&sort=-name"
+                                title="Sort descending"
+                                class="text-decoration-none"
+                            >
+                                <i class="bi bi-arrow-down"></i>
+                            </a>
+                        </th>
+
+                        <th>
+                            Employee ID
+
+                            <a
+                                href="?status={{ status }}&sort=id"
+                                title="Sort ascending"
+                                class="text-decoration-none ms-1"
+                            >
+                                <i class="bi bi-arrow-up"></i>
+                            </a>
+
+                            <a
+                                href="?status={{ status }}&sort=-id"
+                                title="Sort descending"
+                                class="text-decoration-none"
+                            >
+                                <i class="bi bi-arrow-down"></i>
+                            </a>
+                        </th>
+
+                        <th>Amount</th>
+
+                        <th>Reason</th>
+
+                        <th>Status</th>
+
+                        <th>Requested On</th>
+
+                        <th>Decision On</th>
+
+                        <th>Approved By</th>
+
+                        <th>Designation</th>
+
+                        <th class="text-center">Actions</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for req in requests %}
+
+                    <tr>
+
+                        <!-- Number -->
+                        <td class="text-muted">
+                            {{ forloop.counter }}
+                        </td>
+
+
+                        <!-- Employee -->
+                        <td>
+
+                            <div class="d-flex align-items-center">
+
+                                <div
+                                    class="rounded-circle bg-primary bg-opacity-10 text-primary
+                                           d-flex align-items-center justify-content-center me-2"
+                                    style="width:40px;height:40px;"
+                                >
+                                    <i class="bi bi-person"></i>
+                                </div>
+
+                                <div>
+
+                                    <div class="fw-semibold">
+
+                                        {{ req.user.get_full_name|default:req.user.username }}
+
+                                    </div>
+
+                                    <small class="text-muted">
+                                        {{ req.user.username }}
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- Employee ID -->
+                        <td>
+
+                            {% if req.user.employee_id %}
+
+                                <span class="badge bg-light text-dark border">
+                                    {{ req.user.employee_id }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-muted">—</span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Amount -->
+                        <td>
+
+                            <span class="fw-bold text-dark">
+                                ₹{{ req.amount }}
+                            </span>
+
+                        </td>
+
+
+                        <!-- Reason -->
+                        <td style="min-width:220px; max-width:300px;">
+
+                            {% if req.reason %}
+
+                                <span
+                                    data-bs-toggle="tooltip"
+                                    title="{{ req.reason }}"
+                                >
+                                    {{ req.reason|truncatechars:60 }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    No reason provided
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Status -->
+                        <td>
+
+                            {% if req.status == 'approved' %}
+
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    {{ req.get_status_display }}
+                                </span>
+
+                            {% elif req.status == 'pending' %}
+
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                                    <i class="bi bi-hourglass-split me-1"></i>
+                                    {{ req.get_status_display }}
+                                </span>
+
+                            {% elif req.status == 'rejected' %}
+
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    {{ req.get_status_display }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ req.get_status_display }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Requested Date -->
+                        <td>
+
+                            <div class="fw-semibold">
+                                {{ req.request_date|date:"d M Y" }}
+                            </div>
+
+                        </td>
+
+
+                        <!-- Decision Date -->
+                        <td>
+
+                            {% if req.decision_date %}
+
+                                {{ req.decision_date|date:"d M Y H:i" }}
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Approved By -->
+                        <td>
+
+                            {% if req.approver %}
+
+                                <div class="fw-semibold">
+                                    {{ req.approver.get_full_name|default:req.approver.username }}
+                                </div>
+
+                                {% if req.approver.employee_id %}
+
+                                    <small class="text-muted">
+                                        ID: {{ req.approver.employee_id }}
+                                    </small>
+
+                                {% endif %}
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Designation -->
+                        <td>
+
+                            {% if req.approver and req.approver.designation %}
+
+                                <span class="text-muted">
+                                    {{ req.approver.designation }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Actions -->
+                        <td class="text-center">
+
+                            {% if req.status == 'pending' %}
+
+                                <div class="d-flex justify-content-center gap-1">
+
+                                    <!-- Approve -->
+                                    <form
+                                        method="post"
+                                        action="{% url 'payroll:approve_request' req.id %}"
+                                    >
+
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-success"
+                                            title="Approve Request"
+                                            onclick="return confirm('Are you sure you want to approve this salary advance request?');"
+                                        >
+                                            <i class="bi bi-check-lg"></i>
+                                            Approve
+                                        </button>
+
+                                    </form>
+
+
+                                    <!-- Reject -->
+                                    <form
+                                        method="post"
+                                        action="{% url 'payroll:reject_request' req.id %}"
+                                    >
+
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-danger"
+                                            title="Reject Request"
+                                            onclick="return confirm('Are you sure you want to reject this salary advance request?');"
+                                        >
+                                            <i class="bi bi-x-lg"></i>
+                                            Reject
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            {% else %}
+
+                                <a
+                                    href="{% url 'payroll:advance_request_status' req.id %}"
+                                    class="btn btn-sm btn-outline-primary"
+                                    title="View Request"
+                                >
+                                    <i class="bi bi-eye me-1"></i>
+                                    View
+                                </a>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <!-- Empty State -->
+        <div class="text-center py-5">
+
+            <div
+                class="bg-light rounded-circle d-inline-flex
+                       align-items-center justify-content-center mb-3"
+                style="width:80px;height:80px;"
+            >
+                <i class="bi bi-inbox text-muted fs-1"></i>
+            </div>
+
+            <h5 class="fw-bold">
+                No Requests Found
+            </h5>
+
+            <p class="text-muted mb-0">
+                There are no advance salary requests matching the current filter.
+            </p>
+
+        </div>
+
+        {% endif %}
+
+    </div>
 
 </div>
+
+
+<!-- Bootstrap Tooltip -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const tooltipTriggerList =
+        document.querySelectorAll('[data-bs-toggle="tooltip"]');
+
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+
+        new bootstrap.Tooltip(tooltipTriggerEl);
+
+    });
+
+});
+</script>
+
 {% endblock %}
