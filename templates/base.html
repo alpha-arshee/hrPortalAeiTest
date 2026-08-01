@@ -699,13 +699,15 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{% url 'payroll:user_payroll_dashboard' %}">
-                                <i class="fas fa-wallet me-2"></i>User Payroll</a></li>
+                                <i class="fas fa-wallet me-2"></i>My Payroll</a></li>
                             <li><a class="dropdown-item" href="{% url 'attendance:user_attendance_dashboard' %}">
-                                <i class="fas fa-calendar-check me-2"></i>Attendance</a></li>
+                                <i class="fas fa-calendar-check me-2"></i>My Attendance</a></li>
                             <li><a class="dropdown-item" href="{% url 'attendance:leave_request' %}">
-                                <i class="fas fa-calendar-plus me-2"></i>Leave Management</a></li>
+                                <i class="fas fa-calendar-plus me-2"></i>My Leave</a></li>
                             <li><a class="dropdown-item" href="{% url 'attendance:request_attendance' %}">
-                                <i class="fas fa-calendar-alt me-2"></i>Request Attendance</a></li>
+                                <i class="fas fa-calendar-alt me-2"></i>My Attendance Request</a></li>
+                            <li><a class="dropdown-item" href="{% url 'attendance:my_attendance_requests' %}">
+                                <i class="fas fa-eye me-2"></i>View My Requests</a></li>
                         </ul>
                     </li>
 
@@ -714,25 +716,32 @@
                     {% if user.is_employee %}
 
                     <!-- Employee self-service Menu -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            <i class="fas fa-user me-1"></i>Menu
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'attendance:user_attendance_dashboard' %}">
+                            <i class="fas fa-calendar-check me-2"></i>Attendance Management | 
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'payroll:user_payroll_dashboard' %}">
-                                <i class="fas fa-wallet me-2"></i>Payroll Dashboard</a></li>
-                            <li><a class="dropdown-item" href="{% url 'attendance:user_attendance_dashboard' %}">
-                                <i class="fas fa-calendar-check me-2"></i>Attendance</a></li>
-                            <li><a class="dropdown-item" href="{% url 'attendance:leave_request' %}">
-                                <i class="fas fa-calendar-plus me-2"></i>Leave Management</a></li>
-                            <li><a class="dropdown-item" href="{% url 'attendance:request_attendance' %}">
-                                <i class="fas fa-calendar-alt me-2"></i>Request Attendance</a></li>
-                            <li><a class="dropdown-item" href="{% url 'attendance:my_attendance_requests' %}">
-                                <i class="fas fa-eye me-2"></i>View My Requests</a></li>
-                        </ul>
                     </li>
-
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'attendance:leave_request' %}">
+                            <i class="fas fa-calendar-times me-2"></i> My Leave | 
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'attendance:request_attendance' %}">
+                            <i class="fas fa-calendar-alt me-2"></i>Request Attendance | 
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'payroll:user_payroll_dashboard' %}">
+                            <i class="fas fa-wallet me-2"></i>My Payroll | 
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'attendance:my_attendance_requests'  %}">
+                            <i class="fas fa-eye me-2"></i>View My Requests | 
+                        </a>
+                    </li>
+                   
                     {% endif %}{# end is_employee #}
 
                     {% endif %}{# end is_authenticated #}
