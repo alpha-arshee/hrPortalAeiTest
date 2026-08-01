@@ -24,7 +24,7 @@ from .forms import (
 from .decorators import hr_admin_required
 from django.core.files.storage import default_storage
 from decimal import Decimal
-
+from attendance.models import AttendanceRequest
 logger = logging.getLogger(__name__)
 
 
@@ -246,7 +246,8 @@ def dashboard(request):
             
             # Count pending approvals
             pending_employees = [emp for emp in all_employees if not emp.is_approved]
-            pending_approvals = len(pending_employees)
+            # pending_approvals = len(pending_employees)
+            pendingAttendanceRequests = AttendanceRequest.objects.filter(status='pending').select_related('user').order_by('-submitted_at')
             hr_admins = [emp for emp in all_employees if emp.role == 'hr_admin']
             hr_admin_count = len(hr_admins)
             employee_count = len([emp for emp in all_employees if emp.role == 'employee'])
@@ -329,7 +330,7 @@ def dashboard(request):
                 'current_employees': current_employees,
                 'hr_admins_len': hr_admin_count,
                 'employee_count': employee_count,
-                'pending_approvals': pending_approvals,
+                'pendingAttendanceRequests': pendingAttendanceRequests,
                 'recent_registrations': recent_registrations,
                 'total_new_this_week': total_new_this_week,
                 'upcoming_birthdays': upcoming_birthdays,

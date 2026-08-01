@@ -289,7 +289,7 @@
     </div>
     <div class="stat-card">
       <div class="stat-icon red"><i class="fas fa-clock"></i></div>
-      <div class="stat-value">{{ pending_approvals|default:0 }}</div>
+      <div class="stat-value">{{ pendingAttendanceRequests|length }}</div>
       <div class="stat-label">Pending Approvals</div>
     </div>
   </div>
@@ -343,11 +343,11 @@
           <a href="{% url 'attendance:hr_leave_requests' %}" class="action-link">
             <i class="fas fa-file-signature"></i> Leave Requests
           </a>
-          {% if pending_approvals > 0 %}
-          <a href="{% url 'accounts:employee_management' %}?status=pending" class="action-link pending">
-            <i class="fas fa-clock"></i> Review Pending ({{ pending_approvals }})
+           {% if pendingAttendanceRequests %}
+          <a href="{% url 'attendance:pending_attendance_requests' %}?status=pending" class="action-link pending">
+            <i class="fas fa-clock"></i> Review Pending ({{ pendingAttendanceRequests|length }})
           </a>
-          {% endif %}
+          {% endif %} 
         </div>
       </div>
     </div>
