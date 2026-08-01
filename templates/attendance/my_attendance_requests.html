@@ -36,34 +36,43 @@
 
     <div class="row g-3 mb-4">
 
-        <div class="col-md-3 col-sm-6">
-            <div class="summary-card">
-                <h3>{{ requests|length }}</h3>
-                <p>Total Requests</p>
+        <!-- Total Requests -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <h2 class="fw-bold text-primary mb-1">{{ requests|length }}</h2>
+                    <p class="text-muted mb-0">Total Requests</p>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-3 col-sm-6">
-            <div class="summary-card pending-card">
-                <h3>
-                    {% for r in requests %}
-                        {% if r.status == 'pending' %}
-                        {% endif %}
-                    {% endfor %}
-                </h3>
-                <p>Pending</p>
+        <!-- Approved -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 text-center ">
+                <div class="card-body">
+                    <h2 class="fw-bold mb-1">{{ approved_count }}</h2>
+                    <p class="mb-0">Approved Requests</p>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-3 col-sm-6">
-            <div class="summary-card approved-card">
-                <p>Approved Requests</p>
+        <!-- Pending -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 text-center ">
+                <div class="card-body">
+                    <h2 class="fw-bold mb-1">{{ pending_count }}</h2>
+                    <p class="mb-0">Pending Requests</p>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-3 col-sm-6">
-            <div class="summary-card rejected-card">
-                <p>Rejected Requests</p>
+        <!-- Rejected -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 text-center ">
+                <div class="card-body">
+                    <h2 class="fw-bold mb-1">{{ rejected_count }}</h2>
+                    <p class="mb-0">Rejected Requests</p>
+                </div>
             </div>
         </div>
 

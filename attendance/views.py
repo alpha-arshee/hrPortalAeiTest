@@ -1218,10 +1218,17 @@ def request_attendance(request):
 def my_attendance_requests(request):
     """Employee views their own attendance requests"""
     requests_list = AttendanceRequest.objects.filter(user=request.user).order_by('-submitted_at')
-    
+    approved_count = requests_list.filter(status='approved').count()
+    pending_count = requests_list.filter(status='pending').count()
+    rejected_count = requests_list.filter(status='rejected').count()
+
     context = {
         'requests': requests_list,
+        'approved_count': approved_count,
+        'pending_count': pending_count,
+        'rejected_count': rejected_count,
     }
+   
     return render(request, 'attendance/my_attendance_requests.html', context)
 
 
