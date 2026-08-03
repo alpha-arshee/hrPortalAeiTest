@@ -65,7 +65,7 @@ urlpatterns = [
     # Dashboard and Profile
     path('dashboard/', views.dashboard, name='dashboard'),
     path('profile/', views.profile, name='profile'),
-    
+    path('user_guide/', views.user_guide, name='user_guide'),
     # HR Admin URLs
     path('employees/', views.employee_management, name='employee_management'),
     path('department-settings/', views.department_settings, name='department_settings'),

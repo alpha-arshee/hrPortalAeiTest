@@ -1359,4 +1359,7 @@ def reactivate_employee(request, user_id):
         messages.error(request, 'Error reactivating employee.')
         return redirect('accounts:employee_management')
     
-    
+
+def user_guide(request):
+    """Render the user guide page."""
+    return render(request, 'accounts/user_guide.html')

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HRIS User Guide</title>
+<style>
+    :root {
+        --brand: #44577e;
+        --brand-dark: #1e40af;
+        --brand-light: #dbeafe;
+        --ink: #1f2937;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --bg: #f9fafb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .guide-header {
+        background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+        color: #fff;
+        padding: 48px 24px;
+        text-align: center;
+    }
+
+    .guide-header h1 {
+        margin: 0 0 8px;
+        font-size: 2rem;
+        font-weight: 800;
+    }
+
+    .guide-header p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 1rem;
+    }
+
+    .layout {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 32px;
+        padding: 32px 24px 80px;
+    }
+
+    /* Table of contents (sidebar) */
+    .toc {
+        position: sticky;
+        top: 24px;
+        align-self: start;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px;
+        max-height: calc(100vh - 48px);
+        overflow-y: auto;
+    }
+
+    .toc h2 {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin: 0 0 10px;
+        font-weight: 700;
+    }
+
+    .toc ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .toc li a {
+        display: block;
+        padding: 6px 8px;
+        border-radius: 6px;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .toc li a:hover {
+        background: var(--brand-light);
+        color: var(--brand-dark);
+    }
+
+    .toc .sub a {
+        font-weight: 500;
+        font-size: 0.8rem;
+        padding-left: 18px;
+        color: var(--muted);
+    }
+
+    /* Content */
+    .content section {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 28px;
+        margin-bottom: 20px;
+        scroll-margin-top: 20px;
+    }
+
+    .content h2 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--ink);
+        margin: 0 0 16px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--brand-light);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .content h2 .num {
+        background: var(--brand);
+        color: #fff;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .content h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--brand-dark);
+        margin: 24px 0 10px;
+    }
+
+    .content h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin: 18px 0 8px;
+    }
+
+    .content p {
+        margin: 0 0 12px;
+        color: #374151;
+        font-size: 0.95rem;
+    }
+
+    .content ul, .content ol {
+        margin: 0 0 14px;
+        padding-left: 22px;
+        color: #374151;
+        font-size: 0.95rem;
+    }
+
+    .content li {
+        margin-bottom: 6px;
+    }
+
+    .role-badges {
+        display: flex;
+        gap: 10px;
+        margin: 12px 0 18px;
+        flex-wrap: wrap;
+    }
+
+    .role-badge {
+        background: var(--brand-light);
+        color: var(--brand-dark);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .callout {
+        background: #eff6ff;
+        border-left: 4px solid var(--brand);
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin: 14px 0;
+        font-size: 0.9rem;
+        color: #1e3a8a;
+    }
+
+    .callout.warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #78350f;
+    }
+
+    .steps {
+        counter-reset: step;
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .steps li {
+        counter-increment: step;
+        position: relative;
+        padding-left: 36px;
+        margin-bottom: 10px;
+    }
+
+    .steps li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 24px;
+        height: 24px;
+        background: var(--brand);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin: 14px 0 18px;
+    }
+
+    .feature-card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        background: var(--bg);
+    }
+
+    .feature-card strong {
+        display: block;
+        font-size: 0.9rem;
+        color: var(--ink);
+        margin-bottom: 4px;
+    }
+
+    .feature-card span {
+        font-size: 0.82rem;
+        color: var(--muted);
+    }
+
+    /* Mobile */
+    @media (max-width: 900px) {
+        .layout {
+            grid-template-columns: 1fr;
+        }
+        .toc {
+            position: static;
+            max-height: none;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .guide-header h1 { font-size: 1.5rem; }
+        .content section { padding: 18px; }
+        .content h2 { font-size: 1.15rem; }
+    }
+
+    @media print {
+        .toc { display: none; }
+        .layout { display: block; }
+        .content section { break-inside: avoid; box-shadow: none; }
+    }
+</style>
+</head>
+<body>
+
+<div class="guide-header">
+    <h1>HRIS User Guide</h1>
+    <p>Human Resource Information System &mdash; Employee &amp; HR/Admin Reference</p>
+</div>
+
+<div class="layout">
+
+    <!-- Sidebar TOC -->
+    <nav class="toc">
+        <h2>Contents</h2>
+        <ul>
+            <li><a href="#purpose">1. Purpose of the System</a></li>
+            <li><a href="#app-flow">2. Application Flow</a></li>
+            <li class="sub"><a href="#login">2.1 Login &amp; Registration</a></li>
+            <li class="sub"><a href="#password-reset">2.2 Password Reset</a></li>
+            <li><a href="#employee-flow">3. Employee Application Flow</a></li>
+            <li class="sub"><a href="#emp-login">3.1 Employee Login</a></li>
+            <li class="sub"><a href="#attendance-mgmt">3.2 Attendance Management</a></li>
+            <li class="sub"><a href="#my-leave">3.3 My Leave</a></li>
+            <li class="sub"><a href="#attendance-request">3.4 Attendance Request</a></li>
+            <li class="sub"><a href="#my-payroll">3.5 My Payroll</a></li>
+            <li class="sub"><a href="#my-requests">3.6 View My Requests</a></li>
+            <li class="sub"><a href="#emp-profile">3.7 Employee Profile</a></li>
+            <li><a href="#hr-flow">4. HR/Admin Application Flow</a></li>
+            <li class="sub"><a href="#hr-dashboard">4.1 HR Dashboard</a></li>
+            <li><a href="#hr-nav">5. HR/Admin Navigation</a></li>
+            <li><a href="#hr-management">6. HR Management</a></li>
+            <li class="sub"><a href="#emp-mgmt">6.1 Employee Management</a></li>
+            <li class="sub"><a href="#dept-mgmt">6.2 Department Management</a></li>
+            <li class="sub"><a href="#analytics">6.3 Analytics</a></li>
+            <li><a href="#attendance">7. Attendance Management</a></li>
+            <li class="sub"><a href="#biometric">7.1 Biometric Logs</a></li>
+            <li class="sub"><a href="#att-logs">7.2 Attendance Logs</a></li>
+            <li class="sub"><a href="#leave-requests">7.3 Leave Requests</a></li>
+            <li class="sub"><a href="#pending-requests">7.4 Pending Requests</a></li>
+            <li class="sub"><a href="#holidays">7.5 Manage Holidays</a></li>
+            <li><a href="#payroll">8. Payroll Management</a></li>
+            <li class="sub"><a href="#payroll-dashboard">8.1 Payroll Dashboard</a></li>
+            <li class="sub"><a href="#payslip">8.2 Payslip</a></li>
+            <li class="sub"><a href="#advance">8.3 Advance Requests</a></li>
+            <li><a href="#my-menu">9. My Menu &ndash; HR/Admin</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main content -->
+    <main class="content">
+
+        <section id="purpose">
+            <h2><span class="num">1</span>Purpose of the System</h2>
+            <p>The purpose of the Human Resource Information System (HRIS) is to provide an integrated and user-friendly platform for managing and automating core human resource processes within an organization.</p>
+            <p>The system centralizes employee information and streamlines HR activities such as employee management, recruitment and onboarding, attendance and leave management, payroll, benefits, performance appraisals, reporting, and analytics.</p>
+            <h3>The system aims to:</h3>
+            <ul>
+                <li>Automate HR processes and reduce manual paperwork and administrative effort.</li>
+                <li>Centralize employee information in a single system for easy and secure access.</li>
+                <li>Improve attendance and leave management through systematic tracking and approval workflows.</li>
+                <li>Streamline payroll and benefits management, including statutory requirements such as EPF and ESI.</li>
+                <li>Support employee performance management through structured appraisal and feedback processes.</li>
+                <li>Provide reports and analytics to help HR and management make informed decisions.</li>
+                <li>Ensure secure and role-based access to protect employee and organizational information.</li>
+                <li>Improve operational efficiency, data accuracy, transparency, and employee experience across the organization.</li>
+            </ul>
+        </section>
+
+        <section id="app-flow">
+            <h2><span class="num">2</span>Application Flow</h2>
+            <p>The HRIS application provides two types of user roles:</p>
+            <div class="role-badges">
+                <span class="role-badge">Employee</span>
+                <span class="role-badge">HR / Admin</span>
+            </div>
+            <p>Users can access the system only after completing the registration and approval process.</p>
+
+            <h3 id="login">2.1 Login and Registration Flow</h3>
+            <ol class="steps">
+                <li>If a user is already registered and approved by HR/Admin, the user can directly log in to the system by entering their username and password.</li>
+                <li>If a user is not registered, they must complete the registration process first.</li>
+                <li>After registration, the account must be approved by HR/Admin.</li>
+                <li>Once HR/Admin provides access and approves the account, the user can log in using their registered username and password.</li>
+                <li>After successful login, the system displays the dashboard according to the user's assigned role.</li>
+            </ol>
+            <h3 id="Password Reset">2.2 Password Reset</h3>
+            <ol class="steps">
+                <li>If a user forgets their password, they can initiate the password reset process by clicking on the "Forgot Password" link on the login page.</li>
+                <li>The user is prompted to enter their registered email address or username.</li>
+                <li>The system sends a password reset link to the user's registered email address.</li>
+                <li>The user clicks on the password reset link and is redirected to a secure page where they can set a new password.</li>
+                <li>After successfully setting a new password, the user can log in to the system using their updated credentials.</li>
+            </ol>
+        </section>
+
+        <section id="employee-flow">
+            <h2><span class="num">3</span>Employee Application Flow</h2>
+
+            <h3 id="emp-login">3.1 Employee Login</h3>
+            <p>After an approved employee logs in using their username and password, the system redirects them to the <strong>Employee Dashboard</strong>, which provides an overview of the employee's account and recent activities.</p>
+
+            <h4>Employee Dashboard displays:</h4>
+            <div class="feature-grid">
+                <div class="feature-card"><strong>Username</strong><span>Account identifier</span></div>
+                <div class="feature-card"><strong>Employee ID</strong><span>Unique employee reference</span></div>
+                <div class="feature-card"><strong>Department</strong><span>Assigned department</span></div>
+                <div class="feature-card"><strong>Designation</strong><span>Current job title</span></div>
+                <div class="feature-card"><strong>Recent Activities</strong><span>Latest account activity</span></div>
+            </div>
+
+            <p>The top navigation bar provides access to the main employee functions: <strong>Attendance Management</strong>, <strong>My Leave</strong>, <strong>Attendance Request</strong>, <strong>My Payroll</strong>, and <strong>View My Requests</strong>.</p>
+            <p>The profile icon on the right side of the navigation bar provides access to <strong>Profile</strong> and <strong>Logout</strong>.</p>
+
+            <h3 id="attendance-mgmt">3.2 Attendance Management</h3>
+            <p>The Attendance Management section allows employees to view their attendance-related information, including:</p>
+            <ul>
+                <li>Attendance logs</li>
+                <li>Overtime logs</li>
+                <li>Number of present days</li>
+                <li>Number of days in the selected month</li>
+            </ul>
+            <p>This allows employees to monitor their attendance and working records.</p>
+
+            <h3 id="my-leave">3.3 My Leave</h3>
+            <p>The My Leave section allows employees to manage and track their leave requests. The page displays remaining leave balance, a leave request form, and leave request history.</p>
+
+            <h4>Submit Leave Request</h4>
+            <ol class="steps">
+                <li>Open My Leave.</li>
+                <li>Check the available/remaining leave balance.</li>
+                <li>Enter the required leave details.</li>
+                <li>Select the appropriate Leave Type.</li>
+                <li>Submit the leave request &mdash; it is sent to HR/Admin for review.</li>
+            </ol>
+
+            <h4>Leave Request History</h4>
+            <p>Employees can view their previous leave requests along with the decision/status provided by HR/Admin, tracking whether requests have been approved, rejected, or are still pending.</p>
+
+            <h3 id="attendance-request">3.4 Attendance Request</h3>
+            <p>The Attendance Request feature allows employees to submit an attendance request when their attendance could not be recorded through the normal mechanism, such as:</p>
+            <ul>
+                <li>Biometric device not functioning</li>
+                <li>Employee working remotely</li>
+                <li>Employee working outside company premises</li>
+                <li>Attendance not recorded through the regular process</li>
+            </ul>
+            <p>The employee submits the required details through the attendance request form; the request is then available to HR/Admin for review and decision.</p>
+
+            <h3 id="my-payroll">3.5 My Payroll</h3>
+            <p>The My Payroll section allows employees to view their payroll information, including:</p>
+            <ul>
+                <li>Total Earnings</li>
+                <li>Total Deductions</li>
+                <li>Payroll Status</li>
+                <li>Generated Payslips</li>
+            </ul>
+
+            <h3 id="my-requests">3.6 View My Requests</h3>
+            <p>The View My Requests section provides employees with a history of their submitted requests. Employees can view attendance request history, check the status/decision of requests, and submit new requests &mdash; a centralized location to monitor requests and their outcomes.</p>
+
+            <h3 id="emp-profile">3.7 Employee Profile</h3>
+            <p>The profile icon is available on the right side of the navigation bar. Selecting it provides access to <strong>Profile</strong> and <strong>Logout</strong>.</p>
+            <p>By selecting <strong>Profile</strong>, the employee can view their personal and account information; where permitted, employees can also edit their available profile details.</p>
+            <p>Selecting <strong>Logout</strong> securely ends the employee's current session and returns them to the login page.</p>
+        </section>
+
+        <section id="hr-flow">
+            <h2><span class="num">4</span>HR/Admin Application Flow</h2>
+            <p>After an approved HR/Admin user logs in using their username and password, the system redirects them to the <strong>HR Dashboard</strong>, which provides an overview of employees, attendance, leave, registrations, and pending activities.</p>
+
+            <h3 id="hr-dashboard">4.1 HR Dashboard</h3>
+            <h4>Key information displayed:</h4>
+            <div class="feature-grid">
+                <div class="feature-card"><strong>Total Employees</strong></div>
+                <div class="feature-card"><strong>Attendance Today</strong></div>
+                <div class="feature-card"><strong>Employees on Leave Today</strong></div>
+                <div class="feature-card"><strong>New Joiners This Month</strong></div>
+                <div class="feature-card"><strong>Upcoming Birthdays</strong></div>
+                <div class="feature-card"><strong>Pending Attendance Requests</strong></div>
+            </div>
+
+            <h4>Quick Actions</h4>
+            <ul>
+                <li>Manage Employees</li>
+                <li>Geo Analytics</li>
+                <li>My Attendance</li>
+                <li>Leave Requests</li>
+                <li>Pending Attendance</li>
+            </ul>
+
+            <h4>Dashboard Lists</h4>
+            <ul>
+                <li>Recent Registrations</li>
+                <li>Recent Attendance</li>
+                <li>Pending Leave Requests</li>
+            </ul>
+        </section>
+
+        <section id="hr-nav">
+            <h2><span class="num">5</span>HR/Admin Navigation</h2>
+            <p>The HR/Admin navigation bar contains the following major menus:</p>
+            <div class="role-badges">
+                <span class="role-badge">HR Management</span>
+                <span class="role-badge">Attendance</span>
+                <span class="role-badge">Payroll</span>
+                <span class="role-badge">My Menu</span>
+            </div>
+        </section>
+
+        <section id="hr-management">
+            <h2><span class="num">6</span>HR Management</h2>
+            <p>The HR Management menu contains <strong>Employees</strong>, <strong>Department Management</strong>, and <strong>Analytics</strong>.</p>
+
+            <h3 id="emp-mgmt">6.1 Employee Management</h3>
+            <p>The Employee Management page displays a list of employees registered in the system. HR/Admin can view employee details, edit employee details, delete an employee, or mark an employee as resigned.</p>
+
+            <h4>Edit Employee</h4>
+            <ol class="steps">
+                <li>Open HR Management &rarr; Employees.</li>
+                <li>Locate the required employee.</li>
+                <li>Click Edit.</li>
+                <li>Update the required information.</li>
+                <li>Save the changes.</li>
+            </ol>
+
+            <h4>Delete Employee</h4>
+            <ol class="steps">
+                <li>Locate the employee.</li>
+                <li>Click Delete.</li>
+                <li>Review the confirmation message.</li>
+                <li>Confirm the deletion.</li>
+            </ol>
+            <div class="callout warning">
+                <strong>Note:</strong> Deletion should be performed carefully because it permanently removes the employee record.
+            </div>
+
+            <h4>Mark Employee as Resigned</h4>
+            <ol class="steps">
+                <li>Locate the required employee.</li>
+                <li>Click Resigned.</li>
+                <li>Confirm the action &mdash; the employee's status is updated accordingly.</li>
+            </ol>
+
+            <h3 id="dept-mgmt">6.2 Department Management</h3>
+            <p>The Department Management section allows HR/Admin to add new departments, view existing departments, and remove departments.</p>
+
+            <h3 id="analytics">6.3 Analytics</h3>
+            <p>The Analytics section provides HR/Admin with analytical information about the organization, including:</p>
+            <ul>
+                <li>Gender Ratio</li>
+                <li>Employees by Grade</li>
+                <li>Employees by Department</li>
+                <li>Recent Registrations</li>
+                <li>Recent Login Activities</li>
+            </ul>
+            <p>This information helps HR/Admin monitor workforce information and activity.</p>
+        </section>
+
+        <section id="attendance">
+            <h2><span class="num">7</span>Attendance Management</h2>
+            <p>The Attendance menu contains <strong>Biometric Logs</strong>, <strong>Attendance Logs</strong>, <strong>Leave Requests</strong>, <strong>Pending Requests</strong>, and <strong>Manage Holidays</strong>.</p>
+
+            <h3 id="biometric">7.1 Biometric Logs</h3>
+            <p>The Biometric Logs page provides an overview of biometric attendance information. HR/Admin can view total employees present today, employees on leave, and recent biometric logs.</p>
+
+            <h3 id="att-logs">7.2 Attendance Logs</h3>
+            <p>The Attendance Logs page provides HR/Admin with employee attendance records, including the employee list, attendance details, and attendance records for employees.</p>
+
+            <h3 id="leave-requests">7.3 Leave Requests</h3>
+            <p>The Leave Requests section allows HR/Admin to review employee leave requests, view leave requests, approved leave, and leave request details.</p>
+
+            <h3 id="pending-requests">7.4 Pending Requests</h3>
+            <p>The Pending Requests section contains requests that require HR/Admin action. HR/Admin can review the request details and make the appropriate decision.</p>
+
+            <h3 id="holidays">7.5 Manage Holidays</h3>
+            <p>The Manage Holidays section allows HR/Admin to create/add holidays, view existing holidays, and manage the holiday list.</p>
+        </section>
+
+        <section id="payroll">
+            <h2><span class="num">8</span>Payroll Management</h2>
+            <p>The Payroll menu contains <strong>Payroll Dashboard</strong>, <strong>Payslip</strong>, and <strong>Advance Requests</strong>.</p>
+
+            <h3 id="payroll-dashboard">8.1 Payroll Dashboard</h3>
+            <p>The Payroll Dashboard provides an overview of payroll information, displaying:</p>
+            <ul>
+                <li>Number of Payrolls Made This Month</li>
+                <li>Total Payroll / Net Salary Paid</li>
+                <li>Total Deductions</li>
+                <li>Overtime Costs</li>
+            </ul>
+
+            <h3 id="payslip">8.2 Payslip</h3>
+            <p>The Payslip section contains employee payroll records. HR/Admin can view the list of employees and generate payslips for the respective employees.</p>
+            <h4>Generate Payslip</h4>
+            <ol class="steps">
+                <li>Open Payroll &rarr; Payslip.</li>
+                <li>Locate the required employee.</li>
+                <li>Click Generate &mdash; the system generates the employee's payslip.</li>
+            </ol>
+            <p>Generated payroll records can be viewed from the payroll section.</p>
+
+            <h3 id="advance">8.3 Advance Requests</h3>
+            <p>The Advance Requests section displays salary advance requests submitted by employees. HR/Admin can view salary advance requests, review request details, and make a decision on the request.</p>
+        </section>
+
+        <section id="my-menu">
+            <h2><span class="num">9</span>My Menu &ndash; HR/Admin</h2>
+            <p>The My Menu section provides HR/Admin users with access to their own employee-related information, including:</p>
+            <ul>
+                <li>My Payroll</li>
+                <li>My Attendance</li>
+                <li>My Leave</li>
+                <li>My Attendance Request</li>
+                <li>View My Requests</li>
+            </ul>
+            <p>These functions allow an HR/Admin user to access their own records in the same way as an employee, where applicable.</p>
+        </section>
+
+    </main>
+</div>
+
+</body>
+</html>
