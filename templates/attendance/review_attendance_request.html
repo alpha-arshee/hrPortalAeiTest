@@ -45,10 +45,10 @@
                         <p class="bg-light p-3 rounded">{{ attendance_request.reason }}</p>
                     </div>
 
-                    <div>
-                        <strong>🕐 Punch Time:</strong><br>
-                        {% if attendance_request.punch_time %}
-                            {{ attendance_request.punch_time|time:"H:i" }}
+                    <div class="mb-3">
+                        <strong>� Location:</strong><br>
+                        {% if attendance_request.location_address %}
+                            {{ attendance_request.location_address }}
                         {% else %}
                             Not specified
                         {% endif %}

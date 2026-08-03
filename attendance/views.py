@@ -1175,43 +1175,139 @@ def edit_overtime_view(request, ot_id):
 # ATTENDANCE REQUEST VIEWS (Employee Request + HR Approval Workflow)
 # ============================================================================
 
+# @login_required
+# def request_attendance(request):
+#     """Employee submits an attendance request"""
+#     today = timezone.localdate()
+    
+#     if request.method == 'POST':
+#         form = EmployeeAttendanceRequestForm(request.POST)
+#         if form.is_valid():
+#             try:
+#                 # Check if request already exists for this date
+#                 existing = AttendanceRequest.objects.filter(
+#                     user=request.user,
+#                     request_date=form.cleaned_data['request_date']
+#                 ).first()
+                
+#                 if existing:
+#                     messages.warning(request, f"You already have a {existing.status} request for {form.cleaned_data['request_date']}.")
+#                     return redirect('attendance:request_attendance')
+                
+#                 # Create the request
+#                 attendance_request = form.save(commit=False)
+#                 attendance_request.user = request.user
+#                 attendance_request.save()
+                
+#                 messages.success(request, "Attendance request submitted successfully! HR will review it shortly.")
+#                 return redirect('attendance:my_attendance_requests')
+#             except Exception as e:
+#                 logger.exception('Error creating attendance request')
+#                 messages.error(request, f"Error: {str(e)}")
+#     else:
+#         form = EmployeeAttendanceRequestForm()
+    
+#     context = {
+#         'form': form,
+#         'today': today,
+#     }
+#     return render(request, 'attendance/request_attendance.html', context)
+
+
+
+# @login_required
+# def request_attendance(request):
+#     """Employee submits an attendance request"""
+#     today = timezone.localdate()
+
+#     if request.method == 'POST':
+#         form = EmployeeAttendanceRequestForm(request.POST)
+#         if form.is_valid():
+#             try:
+#                 existing = AttendanceRequest.objects.filter(
+#                     user=request.user,
+#                     request_date=form.cleaned_data['request_date']
+#                 ).first()
+
+#                 if existing:
+#                     messages.warning(request, f"You already have a {existing.status} request for {form.cleaned_data['request_date']}.")
+#                     return redirect('attendance:request_attendance')
+
+#                 attendance_request = form.save(commit=False)
+#                 attendance_request.user = request.user
+#                 attendance_request.save()
+
+#                 messages.success(request, "Attendance request submitted successfully! HR will review it shortly.")
+#                 return redirect('attendance:my_attendance_requests')
+#             except Exception as e:
+#                 logger.exception('Error creating attendance request')
+#                 messages.error(request, f"Error: {str(e)}")
+#         else:
+#             # Surface location-specific error clearly if that's what failed
+#             if 'latitude' in form.errors or 'longitude' in form.errors:
+#                 messages.error(request, "Location access is required to submit an attendance request. Please enable location permission and try again.")
+#     else:
+#         form = EmployeeAttendanceRequestForm()
+
+#     context = {
+#         'form': form,
+#         'today': today,
+#     }
+#     return render(request, 'attendance/request_attendance.html', context)
+
+from attendance.utils.geocoding import reverse_geocode
+
 @login_required
 def request_attendance(request):
     """Employee submits an attendance request"""
     today = timezone.localdate()
-    
+
     if request.method == 'POST':
         form = EmployeeAttendanceRequestForm(request.POST)
         if form.is_valid():
             try:
-                # Check if request already exists for this date
                 existing = AttendanceRequest.objects.filter(
                     user=request.user,
                     request_date=form.cleaned_data['request_date']
                 ).first()
-                
+
                 if existing:
                     messages.warning(request, f"You already have a {existing.status} request for {form.cleaned_data['request_date']}.")
                     return redirect('attendance:request_attendance')
-                
-                # Create the request
+
                 attendance_request = form.save(commit=False)
                 attendance_request.user = request.user
+                latitude = form.cleaned_data.get('latitude')
+                longitude = form.cleaned_data.get('longitude')
+                # reverse geocode to get a human-readable address if lat/lon are provided
+                if latitude and longitude:
+                    location_data = reverse_geocode(latitude, longitude)
+                    if location_data:
+                        attendance_request.location_address = (
+                            location_data.get('full_address')
+                        )
                 attendance_request.save()
-                
+
                 messages.success(request, "Attendance request submitted successfully! HR will review it shortly.")
                 return redirect('attendance:my_attendance_requests')
             except Exception as e:
                 logger.exception('Error creating attendance request')
                 messages.error(request, f"Error: {str(e)}")
+        else:
+            # Surface location-specific error clearly if that's what failed
+            if 'latitude' in form.errors or 'longitude' in form.errors:
+                messages.error(request, "Location access is required to submit an attendance request. Please enable location permission and try again.")
     else:
         form = EmployeeAttendanceRequestForm()
-    
+
     context = {
         'form': form,
         'today': today,
     }
     return render(request, 'attendance/request_attendance.html', context)
+
+
+
 
 
 @login_required

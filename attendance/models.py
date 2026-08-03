@@ -293,6 +293,16 @@ class AttendanceRequest(models.Model):
     
     # Mandatory rejection reason (if rejected)
     rejection_reason = models.TextField(null=True, blank=True)
+      # --- location captured at submission time ---
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    location_accuracy = models.FloatField(null=True, blank=True)  # meters, from browser
+    # location_captured = models.BooleanField(default=False)  # False if user denied permission
+    location_address = models.CharField(
+        max_length=500,
+        null=True,
+        blank=True
+    )
     
     class Meta:
         ordering = ['-submitted_at']

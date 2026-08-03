@@ -125,6 +125,7 @@
                         <tr>
                             <th>Date</th>
                             <th>Reason</th>
+                            <th>Location</th>
                             <th>Punch Time</th>
                             <th>Status</th>
                             <th>Submitted</th>
@@ -148,7 +149,13 @@
                             <td class="reason-column">
                                 {{ req.reason }}
                             </td>
-
+                            <td class="reason-column">
+                                {% if req.location_address %}
+                                    {{ req.location_address }}
+                                {% else %}
+                                    <span class="text-muted">Location not captured</span>
+                                {% endif %}
+                            </td>
                             <td>
 
                                 {% if req.punch_time %}

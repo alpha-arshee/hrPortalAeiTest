@@ -60,7 +60,7 @@
                         {% endfor %}
                     {% endif %}
 
-                    <form method="post" novalidate>
+                    <form method="post" novalidate id="attendanceForm">
 
                         {% csrf_token %}
 
@@ -143,6 +143,33 @@
 
                             </div>
 
+                            <!-- Location Capture -->
+
+                            <div class="col-12">
+
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-location-dot me-1"></i>
+                                    Your Location
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                {{ form.latitude }}
+                                {{ form.longitude }}
+                                {{ form.location_accuracy }}
+
+                                {% if form.latitude.errors or form.longitude.errors %}
+                                    <div class="text-danger small mt-1 mb-2">
+                                        Location is required to submit this request.
+                                    </div>
+                                {% endif %}
+
+                                <div id="locationStatus" class="location-status location-pending">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>
+                                    <span>Fetching your location...</span>
+                                </div>
+
+                            </div>
+
                         </div>
 
                         <!-- Form Errors -->
@@ -164,7 +191,9 @@
                         <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
 
                             <button type="submit"
-                                    class="btn btn-primary">
+                                    class="btn btn-primary"
+                                    id="submitBtn"
+                                    disabled>
 
                                 <i class="fas fa-paper-plane me-2"></i>
                                 Submit Request
@@ -211,7 +240,7 @@
                                 <h6>Submit Request</h6>
 
                                 <p>
-                                    Provide attendance date and work details.
+                                    Provide attendance date, work details, and your current location.
                                 </p>
 
                             </div>
@@ -326,6 +355,40 @@ textarea.form-control{
     font-size:.92rem;
 }
 
+/* Location status box */
+
+.location-status{
+    display:flex;
+    align-items:center;
+    padding:12px 16px;
+    border-radius:12px;
+    font-size:.92rem;
+    font-weight:500;
+}
+
+.location-pending{
+    background:#f1f5f9;
+    color:#475569;
+}
+
+.location-success{
+    background:#ecfdf5;
+    color:#059669;
+    border:1px solid #a7f3d0;
+}
+
+.location-error{
+    background:#fef2f2;
+    color:#dc2626;
+    border:1px solid #fecaca;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.location-error .btn-retry{
+    margin-left:auto;
+}
+
 @media (max-width:768px){
 
     .request-card .card-body{
@@ -336,116 +399,96 @@ textarea.form-control{
         margin-bottom:10px;
     }
 
+    .location-error .btn-retry{
+        margin-left:0;
+    }
+
 }
 
 </style>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const latInput = document.getElementById('id_latitude');
+    const lngInput = document.getElementById('id_longitude');
+    const accInput = document.getElementById('id_location_accuracy');
+    const statusDiv = document.getElementById('locationStatus');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Hide the raw number inputs, we only show the status box
+    [latInput, lngInput, accInput].forEach(el => {
+        if (el) el.type = 'hidden';
+    });
+
+    function setPending() {
+        statusDiv.className = 'location-status location-pending';
+        statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span>Fetching your location...</span>';
+        submitBtn.disabled = true;
+    }
+
+    function setSuccess(accuracy) {
+        statusDiv.className = 'location-status location-success';
+        const acc = accuracy ? ` (accuracy: ~${Math.round(accuracy)}m)` : '';
+        statusDiv.innerHTML = `<i class="fas fa-circle-check me-2"></i><span>Location captured successfully${acc}.</span>`;
+        submitBtn.disabled = false;
+    }
+
+    function setError(message) {
+        statusDiv.className = 'location-status location-error';
+        statusDiv.innerHTML = `<i class="fas fa-triangle-exclamation me-2"></i><span>${message}</span>
+            <button type="button" class="btn btn-sm btn-outline-danger btn-retry">Retry</button>`;
+        submitBtn.disabled = true;
+
+        const retryBtn = statusDiv.querySelector('.btn-retry');
+        retryBtn.addEventListener('click', captureLocation);
+    }
+
+    function captureLocation() {
+        if (!navigator.geolocation) {
+            setError('Geolocation is not supported by your browser. This form cannot be submitted.');
+            return;
+        }
+
+        setPending();
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                latInput.value = position.coords.latitude;
+                lngInput.value = position.coords.longitude;
+                accInput.value = position.coords.accuracy;
+                setSuccess(position.coords.accuracy);
+            },
+            (error) => {
+                let msg = '';
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        msg = 'Location permission denied. Please enable location access in your browser settings, then click Retry.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        msg = 'Location unavailable. Please check your device settings and try again.';
+                        break;
+                    case error.TIMEOUT:
+                        msg = 'Location request timed out. Please try again.';
+                        break;
+                    default:
+                        msg = 'Could not get your location. Please try again.';
+                }
+                setError(msg);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    }
+
+    captureLocation();
+
+    // Safety net: block submit if lat/lng somehow empty (e.g. JS re-run edge cases)
+    document.getElementById('attendanceForm').addEventListener('submit', function (e) {
+        if (!latInput.value || !lngInput.value) {
+            e.preventDefault();
+            setError('Location is required. Please allow location access before submitting.');
+        }
+    });
+});
+</script>
+
 {% endblock %}
-
-
-{% comment %} {% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Request Attendance{% endblock %}
-
-{% block content %}
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">📋 Request Attendance</h4>
-                    <small>Submit a request when you're working but not in the office</small>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-
-                    <form method="post" class="needs-validation" novalidate>
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            <label for="{{ form.request_date.id_for_label }}" class="form-label">
-                                📅 Date
-                                <span class="text-danger">*</span>
-                            </label>
-                            {{ form.request_date }}
-                            {% if form.request_date.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ form.request_date.errors }}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted d-block mt-1">
-                                Can request up to 30 days in the past or today
-                            </small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.reason.id_for_label }}" class="form-label">
-                                💬 Reason
-                                <span class="text-danger">*</span>
-                            </label>
-                            {{ form.reason }}
-                            {% if form.reason.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ form.reason.errors }}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted d-block mt-1">
-                                e.g., "Working from home", "Remote meeting", "Client visit"
-                            </small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.punch_time.id_for_label }}" class="form-label">
-                                🕐 Punch Time
-                            </label>
-                            {{ form.punch_time }}
-                            {% if form.punch_time.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ form.punch_time.errors }}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted d-block mt-1">
-                                Optional (auto-fills to current time)
-                            </small>
-                        </div>
-
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger" role="alert">
-                                {% for error in form.non_field_errors %}
-                                    <div>{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                ✓ Submit Request
-                            </button>
-                            <a href="{% url 'attendance:my_attendance_requests' %}" class="btn btn-secondary">
-                                Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="alert alert-info mt-4">
-                <h6>ℹ️ How it works:</h6>
-                <ul class="mb-0">
-                    <li>Fill out this form when you're working but not in the office</li>
-                    <li>Your HR manager will review and approve or reject your request</li>
-                    <li>Once approved, your attendance will be marked automatically</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %} {% endcomment %}

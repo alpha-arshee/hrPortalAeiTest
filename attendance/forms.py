@@ -81,9 +81,22 @@ class EmployeeAttendanceRequestForm(forms.ModelForm):
         help_text='Optional: Leave blank to use current time'
     )
 
+    latitude = forms.FloatField(
+            required=True,
+            widget=forms.HiddenInput(),
+            error_messages={'required': 'Location is required to submit this request.'}
+        )
+    longitude = forms.FloatField(
+        required=True,
+        widget=forms.HiddenInput(),
+        error_messages={'required': 'Location is required to submit this request.'}
+    )
+    location_accuracy = forms.FloatField(required=False, widget=forms.HiddenInput())
+
+    
     class Meta:
         model = AttendanceRequest
-        fields = ['request_date', 'reason', 'punch_time']
+        fields = ['request_date', 'reason', 'punch_time', 'latitude', 'longitude', 'location_accuracy']
         widgets = {
             'request_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'reason': forms.Textarea(attrs={'rows': 4, 'class': 'form-control', 'placeholder': 'e.g., Working from home, Remote meeting, etc.'}),
@@ -138,3 +151,20 @@ class HRApproveAttendanceRequestForm(forms.Form):
         return cleaned
 
 
+
+# class EmployeeAttendanceRequestForm(forms.ModelForm):
+#     latitude = forms.FloatField(
+#         required=True,
+#         widget=forms.HiddenInput(),
+#         error_messages={'required': 'Location is required to submit this request.'}
+#     )
+#     longitude = forms.FloatField(
+#         required=True,
+#         widget=forms.HiddenInput(),
+#         error_messages={'required': 'Location is required to submit this request.'}
+#     )
+#     location_accuracy = forms.FloatField(required=False, widget=forms.HiddenInput())
+
+#     class Meta:
+#         model = AttendanceRequest
+#         fields = ['request_date', 'reason', 'punch_time', 'latitude', 'longitude', 'location_accuracy']
