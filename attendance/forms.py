@@ -80,7 +80,11 @@ class EmployeeAttendanceRequestForm(forms.ModelForm):
         widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
         help_text='Optional: Leave blank to use current time'
     )
-
+    request_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text='Optional: Leave blank to use current date'
+    )
     latitude = forms.FloatField(
             required=True,
             widget=forms.HiddenInput(),
@@ -117,8 +121,9 @@ class EmployeeAttendanceRequestForm(forms.ModelForm):
         # Auto-fill punch_time if blank (remove microseconds)
         if not cleaned.get('punch_time'):
             cleaned['punch_time'] = timezone.localtime().time().replace(microsecond=0)
-        
-        return cleaned
+
+        if not cleaned.get('request_date'):
+            cleaned['request_date'] = today
 
 
 class HRApproveAttendanceRequestForm(forms.Form):

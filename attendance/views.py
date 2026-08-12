@@ -1287,7 +1287,7 @@ def request_attendance(request):
                             location_data.get('full_address')
                         )
                 attendance_request.save()
-
+                requested_date = attendance_request.request_date
                 messages.success(request, "Attendance request submitted successfully! HR will review it shortly.")
                 return redirect('attendance:my_attendance_requests')
             except Exception as e:
@@ -1303,6 +1303,7 @@ def request_attendance(request):
     context = {
         'form': form,
         'today': today,
+        'request_date': form.cleaned_data.get('request_date') if form.is_bound else today,
     }
     return render(request, 'attendance/request_attendance.html', context)
 
