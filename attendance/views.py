@@ -397,10 +397,8 @@ def reject_leave(request, leave_id):
 @login_required
 @hr_admin_required
 def hr_biometric_logs_view(request):
-    logs = BiometricLog.objects.all().order_by('-punch_date', '-punch_time')[:500]
+    logs = BiometricLog.objects.all().order_by('-punch_date', '-punch_time')
 
-    # summary stats
-    total_employees = User.objects.count()
     today = date.today()
     # number of unique employees who have an IN record today
     # Avoid COUNT(DISTINCT ...) because djongo's SQL parser can fail for that pattern.
@@ -414,11 +412,11 @@ def hr_biometric_logs_view(request):
         present_today = 0
         logger.exception("Failed to compute present_today count")
 
-    on_leave = total_employees - present_today
-    
     all_employees = list(User.objects.all())
     # current_employees should reflect only active accounts
     current_employees = len([emp for emp in all_employees if getattr(emp, 'is_active', False)])
+    on_leave = current_employees - present_today
+    
     
     context = {
         'logs': logs,
@@ -725,25 +723,16 @@ def employee_attendance_log_view(request):
     # on_leave_user_ids = set(on_leave_qs.values_list('user_id', flat=True))
 
     absent_employees = []
-    for user in User.objects.all().order_by('username'):
+    all_users = list(User.objects.all())
+    active_users = sorted(
+        (u for u in all_users if u.is_active),
+        key=lambda u: u.created_at
+    )
+    for user in active_users:
         eid = getattr(user, 'employee_id', None)
         # Show raw biometric row count as "present days" per user's request
         present_days = emp_raw_count_by_user.get(user.id, 0) if 'emp_raw_count_by_user' in locals() else 0
-        # leave_days = 0
-        # if user.id in on_leave_user_ids:
-        #     # calculate leave days overlap for the period
-        #     # approximate by summing leave overlap entries
-        #     try:
-        #         user_leaves = on_leave_qs.filter(user_id=user.id)
-        #         for lv in user_leaves:
-        #             # overlapping days count
-        #             overlap_start = max(lv.start_date, period_start)
-        #             overlap_end = min(lv.end_date, period_end)
-        #             if overlap_end >= overlap_start:
-        #                 leave_days += (overlap_end - overlap_start).days + 1
-        #     except Exception:
-        #         leave_days = 0
-
+        # Show leave days as "absent days" per user's request
         absent_days = total_days - present_days
         if absent_days < 0:
             absent_days = 0
