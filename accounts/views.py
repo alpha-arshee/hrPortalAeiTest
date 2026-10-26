@@ -739,6 +739,10 @@ def approve_employee(request, user_id):
     """HR Admin: Approve employee account"""
     try:
         user = User.objects.get(id=user_id, role='employee')
+        if user.is_resigned:
+            raise PermissionError('A resigned account cannot be approved again.')
+        if user.is_approved:
+            raise PermissionError('Only new or pending accounts can be approved.')
         user.is_approved = True
         # When approving an account, also ensure it is active so the user can log in
         user.is_active = True
@@ -754,6 +758,11 @@ def approve_employee(request, user_id):
             return JsonResponse({'success': False, 'message': 'Employee not found!'})
         messages.error(request, 'Employee not found.')
         return redirect('accounts:employee_management')
+    except PermissionError as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': str(e)})
+        messages.error(request, str(e))
+        return redirect('accounts:employee_management')
     except Exception as e:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'message': 'Error approving employee!'})
@@ -768,8 +777,11 @@ def reject_employee(request, user_id):
     """HR Admin: Reject/disable employee account"""
     try:
         user = User.objects.get(id=user_id, role='employee')
+        if user.is_resigned:
+            raise PermissionError('This account has already been resigned.')
         user.is_approved = False
         user.is_active = False
+        user.is_resigned = True
         user.save()
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -781,6 +793,11 @@ def reject_employee(request, user_id):
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'message': 'Employee not found!'})
         messages.error(request, 'Employee not found.')
+        return redirect('accounts:employee_management')
+    except PermissionError as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': str(e)})
+        messages.error(request, str(e))
         return redirect('accounts:employee_management')
     except Exception as e:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -909,8 +926,6 @@ def edit_employee_detail(request, user_id):
         messages.error(request, 'Employee not found.')
         return redirect('accounts:employee_management')
 
-    original_role = employee.role
-    
     # Get tax info safely
     try:
         tax_info = employee.taxinfo
@@ -959,12 +974,6 @@ def edit_employee_detail(request, user_id):
         if form.is_valid():
             try:
                 form.save()
-                # A role change is an HR status change, not a resignation.
-                # Keep the account usable after moving it between role groups.
-                if employee.role != original_role:
-                    employee.is_active = True
-                    employee.is_approved = True
-                    employee.save()
                 messages.success(request, 'Employee details updated successfully!')
                 return redirect('accounts:edit_employee_detail', user_id=user_id)
             except Exception as e:
@@ -1357,32 +1366,6 @@ def analytics(request):
 
 
 
-@login_required
-@hr_admin_required
-@require_http_methods(["POST"])
-def reactivate_employee(request, user_id):
-    """HR Admin: Reactivate previously disabled employee account"""
-    try:
-        user = User.objects.get(id=user_id, role='employee')
-        user.is_active = True
-        user.is_approved = True
-        user.save()
-
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': True, 'message': 'Employee reactivated successfully!'})
-
-        messages.success(request, f'Employee {user.username} reactivated successfully!')
-        return redirect('accounts:employee_management')
-    except User.DoesNotExist:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'message': 'Employee not found!'})
-        messages.error(request, 'Employee not found.')
-        return redirect('accounts:employee_management')
-    except Exception as e:
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'message': 'Error reactivating employee!'})
-        messages.error(request, 'Error reactivating employee.')
-        return redirect('accounts:employee_management')
     
 
 def user_guide(request):

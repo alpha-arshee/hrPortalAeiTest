@@ -76,6 +76,5 @@ urlpatterns = [
     path('employee/<int:user_id>/approve/', views.approve_employee, name='approve_employee'),
     path('employee/<int:user_id>/reject/', views.reject_employee, name='reject_employee'),
     path('employee/<int:user_id>/delete/', views.delete_employee, name='delete_employee'),
-    path('employee/<int:user_id>/reactivate/', views.reactivate_employee, name='reactivate_employee'),
     path('analytics/', views.analytics, name='analytics'),
 ]

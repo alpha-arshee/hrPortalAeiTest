@@ -233,10 +233,12 @@
         <h2><i class="fas fa-user" style="color:#2563eb;margin-right:8px;"></i>User Details</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <span class="badge badge-primary">{{ employee.get_role_display }}</span>
-            {% if employee.is_active %}
+            {% if employee.is_resigned %}
+            <span class="badge badge-danger">Resigned</span>
+            {% elif employee.is_active %}
             <span class="badge badge-success">Active</span>
             {% else %}
-            <span class="badge badge-danger">Resigned</span>
+            <span class="badge badge-secondary">Pending</span>
             {% endif %}
         </div>
     </div>

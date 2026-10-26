@@ -5,8 +5,8 @@ from .models import User, EmployeeProfile, LoginAttempt
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'email', 'first_name', 'middle_name', 'last_name', 'gender', 'role', 'is_approved', 'is_active')
-    list_filter = ('role', 'is_approved', 'is_active', 'is_staff', 'date_joined')
+    list_display = ('username', 'email', 'first_name', 'middle_name', 'last_name', 'gender', 'role', 'is_approved', 'is_active', 'is_resigned')
+    list_filter = ('role', 'is_approved', 'is_active', 'is_resigned', 'is_staff', 'date_joined')
     search_fields = ('username', 'first_name', 'middle_name', 'last_name', 'email', 'employee_id')
     ordering = ('-date_joined',)
     

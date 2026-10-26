@@ -247,10 +247,12 @@
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <span class="badge badge-primary">{{ employee.get_role_display }}</span>
-            {% if employee.is_active %}
+            {% if employee.is_resigned %}
+            <span class="badge badge-danger">Resigned</span>
+            {% elif employee.is_active %}
             <span class="badge badge-success">Active</span>
             {% else %}
-            <span class="badge badge-danger">Resigned</span>
+            <span class="badge badge-secondary">Pending</span>
             {% endif %}
         </div>
         <div class="action-buttons" style="margin-left:auto;">
@@ -267,7 +269,7 @@
             {% endif %}
             {% if user.is_hr_admin %}
             <!-- Approve -->
-                  {% if not employee.is_approved %}
+                  {% if not employee.is_approved and not employee.is_resigned %}
                   <div class="action-btn approve" title="Approve employee">
                     <form method="post" action="{% url 'accounts:approve_employee' employee.id %}">
                       {% csrf_token %}
@@ -277,7 +279,7 @@
                   {% endif %}
 
                   <!-- Disable -->
-                  {% if employee.is_active %}
+                  {% if employee.is_active and not employee.is_resigned %}
                   <div class="action-btn disable" title=" Resigned account">
                     <form method="post" action="{% url 'accounts:reject_employee' employee.id %}">
                       {% csrf_token %}

@@ -72,6 +72,7 @@ class User(AbstractUser):
     date_of_joining = models.DateField(null=True, blank=True)
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     is_approved = models.BooleanField(default=False)
+    is_resigned = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     middle_name = models.CharField(max_length=150, blank=True, null=True, validators=[name_regex])
@@ -87,6 +88,16 @@ class User(AbstractUser):
     
     def is_employee(self):
         return self.role == 'employee'
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            existing = type(self).objects.get(pk=self.pk)
+            if existing.is_resigned:
+                self.is_resigned = True
+        if self.pk and self.is_resigned:
+            self.is_active = False
+            self.is_approved = False
+        super().save(*args, **kwargs)
 
     def get_full_name(self):
         """Return the user's full name including middle name when present.

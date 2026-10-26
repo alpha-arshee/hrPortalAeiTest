@@ -553,8 +553,8 @@ class HRUserManagementForm(forms.ModelForm):
         model = User
         fields = (
             'first_name', 'middle_name', 'last_name', 'gender', 'email', 'employee_id',
-            'phone_number', 'department', 'date_of_joining', 'is_approved',
-            'is_active', 'profile_picture', 'grade', 'role',
+            'phone_number', 'department', 'date_of_joining',
+            'profile_picture', 'grade', 'role',
             'project_name', 'designation', 'addhar_id','emp_code', 'company_email'
         )
         widgets = {
@@ -567,8 +567,6 @@ class HRUserManagementForm(forms.ModelForm):
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
             'department': forms.Select(attrs={'class': 'form-select'}),
             'date_of_joining': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'is_approved': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
             'project_name': forms.TextInput(attrs={'class': 'form-control'}),
             'designation': forms.TextInput(attrs={'class': 'form-control'}),
@@ -681,14 +679,6 @@ class HRUserManagementForm(forms.ModelForm):
             pass
             
     def save(self, commit=True):
-        role_changed = (
-            self.instance.pk
-            and self.instance.role != self.cleaned_data.get('role')
-        )
-        if role_changed:
-            self.cleaned_data['is_active'] = True
-            self.cleaned_data['is_approved'] = True
-
         user = super().save(commit=commit)
         
         if self.employee_profile and commit:

@@ -146,22 +146,6 @@
                                 </div>
                                 <div class="row g-3 mt-0">
                                     <div class="col-12 col-md-4">{{ form.date_of_joining|as_crispy_field }}</div>
-                                    {% comment %} <div class="col-6 col-md-4">
-                                        <div class="form-check mt-4 pt-2">
-                                            {{ form.is_active }}
-                                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                                Account Active
-                                            </label>
-                                        </div>
-                                    </div> {% endcomment %}
-                                    {% comment %} <div class="col-6 col-md-4">
-                                        <div class="form-check mt-4 pt-2">
-                                            {{ form.is_approved }}
-                                            <label class="form-check-label" for="{{ form.is_approved.id_for_label }}">
-                                                Account Approved
-                                            </label>
-                                        </div>
-                                    </div> {% endcomment %}
                                 </div>
                             </div>
                         </div>
@@ -406,10 +390,6 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-md-4 mb-3">{{ form.date_of_joining|as_crispy_field }}</div>
-                                    <div class="col-md-4 mb-3">
-                                        <div class="form-check">{{ form.is_active }} <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Account Active</label></div>
-                                    </div>
-                                    <div class="col-md-4 mb-3"> <div class="form-check">{{ form.is_approved }} <label class="form-check-label" for="{{ form.is_approved.id_for_label }}">Account Approved</label></div></div>
                                 </div>
                             </div>
                         </div>
