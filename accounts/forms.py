@@ -212,7 +212,7 @@ class UserLoginForm(forms.Form):
         max_length=150,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Username'
+            'placeholder': 'Username, email, or employee ID'
         })
     )
     password = forms.CharField(
@@ -681,6 +681,14 @@ class HRUserManagementForm(forms.ModelForm):
             pass
             
     def save(self, commit=True):
+        role_changed = (
+            self.instance.pk
+            and self.instance.role != self.cleaned_data.get('role')
+        )
+        if role_changed:
+            self.cleaned_data['is_active'] = True
+            self.cleaned_data['is_approved'] = True
+
         user = super().save(commit=commit)
         
         if self.employee_profile and commit:

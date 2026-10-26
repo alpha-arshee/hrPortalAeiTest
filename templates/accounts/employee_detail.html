@@ -269,9 +269,9 @@
             <!-- Approve -->
                   {% if not employee.is_approved %}
                   <div class="action-btn approve" title="Approve employee">
-                    <form method="post" action="{% url 'accounts:reactivate_employee' employee.id %}">
+                    <form method="post" action="{% url 'accounts:approve_employee' employee.id %}">
                       {% csrf_token %}
-                      <button type="submit"><i class="fas fa-check"></i></button>
+                      <button type="submit"  class="btn btn-success"><i class="fas fa-check"></i>Approve</button>
                     </form>
                   </div>
                   {% endif %}

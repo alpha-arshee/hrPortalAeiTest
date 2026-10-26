@@ -186,7 +186,7 @@ def user_login(request):
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
+            login_identifier = form.cleaned_data['username'].strip()
             password = form.cleaned_data['password']
             
             # Get client IP
@@ -196,11 +196,20 @@ def user_login(request):
             else:
                 ip_address = request.META.get('REMOTE_ADDR')
             
-            user = authenticate(request, username=username, password=password)
+            account = None
+            for lookup in ('username', 'email', 'employee_id'):
+                try:
+                    account = User.objects.get(**{lookup: login_identifier})
+                    break
+                except User.DoesNotExist:
+                    continue
+
+            auth_username = account.username if account is not None else login_identifier
+            user = authenticate(request, username=auth_username, password=password)
             
             # Log login attempt
             LoginAttempt.objects.create(
-                username=username,
+                username=login_identifier,
                 ip_address=ip_address,
                 success=user is not None,
                 user_agent=request.META.get('HTTP_USER_AGENT', '')
@@ -214,7 +223,15 @@ def user_login(request):
                 else:
                     messages.error(request, 'Your account is pending approval from HR.')
             else:
-                messages.error(request, 'Invalid username or password.')
+                inactive_user = account
+
+                if inactive_user is not None and not inactive_user.is_active:
+                    messages.error(
+                        request,
+                        'This account is resigned or inactive. Please contact HR to reactivate it.',
+                    )
+                else:
+                    messages.error(request, 'Invalid username or password.')
     else:
         form = UserLoginForm()
     
@@ -891,6 +908,8 @@ def edit_employee_detail(request, user_id):
     except User.DoesNotExist:
         messages.error(request, 'Employee not found.')
         return redirect('accounts:employee_management')
+
+    original_role = employee.role
     
     # Get tax info safely
     try:
@@ -940,6 +959,12 @@ def edit_employee_detail(request, user_id):
         if form.is_valid():
             try:
                 form.save()
+                # A role change is an HR status change, not a resignation.
+                # Keep the account usable after moving it between role groups.
+                if employee.role != original_role:
+                    employee.is_active = True
+                    employee.is_approved = True
+                    employee.save()
                 messages.success(request, 'Employee details updated successfully!')
                 return redirect('accounts:edit_employee_detail', user_id=user_id)
             except Exception as e:
