@@ -602,6 +602,7 @@ class HRUserManagementForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         _apply_department_choices(self)
         self.fields['department'].widget.attrs.update({'class': 'form-select'})
+        self.fields['employee_id'].required = True
         
         if self.employee_profile:
             self.fields['emergency_contact'].initial = self.employee_profile.emergency_contact
@@ -841,6 +842,30 @@ class HRUserManagementForm(forms.ModelForm):
     def clean(self):
         """No special payroll validation required anymore; delegate to parent."""
         return super().clean()
+
+    def clean_employee_id(self):
+        employee_id = (self.cleaned_data.get('employee_id') or '').strip()
+        if not employee_id:
+            raise ValidationError('Employee ID is required.')
+
+        try:
+            for existing_user in User.objects.all():
+                if (
+                    existing_user.pk != self.instance.pk
+                    and existing_user.employee_id == employee_id
+                ):
+                    raise ValidationError(
+                        'This Employee ID is already assigned to another user.'
+                    )
+        except ValidationError:
+            raise
+        except Exception:
+            logger.exception('Unable to validate Employee ID uniqueness.')
+            raise ValidationError(
+                'Employee ID could not be validated. Please try again.'
+            )
+
+        return employee_id
 
     def clean_dob(self):
         dob = self.cleaned_data.get('dob')

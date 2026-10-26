@@ -977,7 +977,14 @@ def edit_employee_detail(request, user_id):
                 messages.success(request, 'Employee details updated successfully!')
                 return redirect('accounts:edit_employee_detail', user_id=user_id)
             except Exception as e:
-                messages.error(request, 'Error updating employee details.')
+                logger.exception(
+                    'Error updating employee details for user %s',
+                    getattr(employee, 'username', user_id),
+                )
+                form.add_error(
+                    None,
+                    f'Unable to update employee details: {str(e)}',
+                )
     else:
         # Pass payroll_details to the form on GET so payroll fields are prefilled
         form = HRUserManagementForm(
